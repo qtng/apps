@@ -95,9 +95,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
    the format bar (the pencil and the slider are gone) */
 .reading .fmtbar, .reading #undo-btn, .reading #redo-btn, .reading .edit-only { display: none; }
 #view-editor:not(.reading) #edit-btn, #view-editor:not(.reading) .zoombar { display: none; }
-.zoombar { position: absolute; z-index: 6; top: calc(56px + env(safe-area-inset-top) + .6rem); left: 50%; transform: translateX(-50%); width: min(18rem, 70vw); display: flex; padding: .3rem .9rem; border-radius: 999px; }   /* floats over the pages, in the middle */
+.zoombar { position: absolute; z-index: 6; bottom: calc(1.25rem + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: min(16rem, 60vw); display: flex; }   /* floats over the pages at the bottom, in the middle, without a colour of its own */
 .read-zoom { flex: 1 1 auto; min-width: 0; margin: 0; accent-color: var(--accent); }
-#view-editor.reading .field { padding-top: 3.4rem; }   /* the pages begin below the slider */
+
 
 /* the field: the pages of the document on the dark desk of the app */
 .field { flex: 1; min-height: 0; overflow: auto; padding: 1rem .75rem 40vh; }
@@ -304,7 +304,7 @@ input.doc-title:focus { border-color: var(--accent); }
 #view-editor .appbar, #view-editor .fmtbar, #view-editor .keybar { background: color-mix(in srgb, var(--bar) 80%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: var(--ink); }
 #view-editor .appbar { z-index: 7; }   /* its menus above the format bar and the pages (the blur makes the bar a layer of its own) */
 #view-editor .keybar { z-index: 5; }
-#view-editor .zoombar { background: color-mix(in srgb, var(--bar) 55%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: 0 2px 10px rgba(0, 0, 0, .25); }
+
 /* the pages have no background of their own and no edge: they sit on the style of the screen; only the dotted lines between the pages remain */
 .ProseMirror .sec { background: none; box-shadow: none; outline: 0; border-radius: 0; }
 
