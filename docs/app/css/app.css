@@ -52,7 +52,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .search-bar input { width: 100%; min-height: 44px; padding: 0 1rem; border: 1px solid var(--line); border-radius: 22px; background: var(--bg); color: var(--ink); font-size: 1rem; outline: 0; }
 .search-bar input:focus { border-color: var(--accent); }
 
-.style-btn { flex: none; width: 34px; height: 34px; margin: 0 .5rem; padding: 0; border: 2px solid var(--ink); border-radius: 8px; background: var(--field-bg, #000); }
+.style-btn { flex: none; width: 34px; height: 34px; margin: 0 .25rem; padding: 0; border: 2px solid var(--ink); border-radius: 8px; background: var(--field-bg, #000); }
+.fmtbar .pop > .style-btn { min-width: 34px; min-height: 34px; width: 34px; height: 34px; padding: 0; border: 2px solid var(--ink); border-radius: 8px; background: var(--field-bg, #000); }   /* the style of the document in the format bar */
 #set-style button { gap: .75rem; }
 #set-style .style-sample { flex: none; min-width: 5rem; padding: .25rem .5rem; border-radius: 8px; border: 1px solid var(--line); font-family: var(--doc-font), var(--nom), serif; font-size: 1.15rem; line-height: 1.3; text-align: center; }
 #set-style button[aria-checked="true"] { color: var(--accent); }
@@ -90,10 +91,13 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tools select option, .tools select optgroup { color: var(--ink); background: var(--bg); }
 .tools select:disabled { opacity: .3; }
 .h-icon sub { font-size: .6em; font-weight: 700; bottom: 0; margin-left: 1px; }
-/* reading: text, back, zoom slider and pencil only; editing: all the bars (the pencil and the slider are gone) */
-.reading .fmtbar, .reading #undo-btn, .reading #redo-btn, .reading #style-btn, .reading #menu-btn { display: none; }
-#view-editor:not(.reading) #edit-btn, #view-editor:not(.reading) .read-zoom { display: none; }
-.read-zoom { flex: 2 1 0; min-width: 0; max-width: 18rem; accent-color: var(--accent); }
+/* reading: back, the title, pencil and menu (share, delete), the zoom slider in a bar below; editing: the title (a tap edits it), undo, redo, menu,
+   the format bar (the pencil and the slider are gone) */
+.reading .fmtbar, .reading #undo-btn, .reading #redo-btn, .reading .edit-only { display: none; }
+#view-editor:not(.reading) #edit-btn, #view-editor:not(.reading) .zoombar { display: none; }
+.zoombar { position: absolute; z-index: 6; bottom: calc(1.25rem + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: min(16rem, 60vw); display: flex; }   /* floats over the pages at the bottom, in the middle, without a colour of its own */
+.read-zoom { flex: 1 1 auto; min-width: 0; margin: 0; accent-color: var(--accent); }
+
 
 /* the field: the pages of the document on the dark desk of the app */
 .field { flex: 1; min-height: 0; overflow: auto; padding: 1rem .75rem 40vh; }
@@ -259,10 +263,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .appbar .size-btn .caret { font-size: .65rem; opacity: .7; }
 .appbar .size-btn[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
 .appbar .pop .menu { top: calc(100% + 6px); left: 0; right: auto; min-width: 0; padding: .4rem; }
-/* the title above the pages: a tap edits it */
-.doc-head { width: calc(var(--page-em, 22) * var(--unit, 32px)); max-width: none; margin: 0 auto .75rem; }   /* as wide as the page; zoomed with it */
-.doc-title { display: block; width: 100%; min-height: 1.5em; margin: 0; padding: .1em .15em; font-family: var(--doc-font), var(--nom), system-ui, sans-serif; font-size: calc(var(--unit, 32px) * .5625); line-height: 1.3; color: var(--ink);
-  overflow-wrap: anywhere; cursor: text; }
+/* the title in the title bar (like the name of a file; the real title is in the pages): a tap edits it while editing */
+.bar-title { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; margin: 0 .25rem; }
+.doc-title { display: block; width: 100%; min-width: 0; margin: 0; padding: .3rem .45rem; font-family: var(--doc-font), var(--nom), system-ui, sans-serif; font-size: 1.05rem; line-height: 1.3; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: text; }
 .doc-title.untitled { color: var(--muted); opacity: .6; }
 input.doc-title { border: 1px solid var(--line); border-radius: 8px; background: rgba(255, 255, 255, .08); outline: 0; }
 input.doc-title:focus { border-color: var(--accent); }
@@ -274,7 +278,7 @@ input.doc-title:focus { border-color: var(--accent); }
 /* the input in the title bar, the direction at the end of the format bar */
 .appbar .ime-select { flex: 0 1 auto; min-width: 0; max-width: 8.5rem; height: 44px; padding: 0 .3rem; border: 1px solid var(--line); border-radius: 10px; background: transparent; color: inherit; font-size: .85rem; }
 .appbar .ime-select option { color: var(--ink); background: var(--bg); }
-.fmtbar .page-tools button { width: 40px; height: 40px; }
+.fmtbar .page-tools button { width: 36px; height: 40px; }
 
 /* the title bar of the editor: back, undo, redo, new page, then edit, style, menu; the format bar: the buttons, the direction, the size, the input */
 .appbar .bar-btn { flex: none; width: 44px; height: 44px; margin-left: .2rem; border: 1px solid var(--line); border-radius: 10px; background: transparent; font-size: 1.1rem; }
@@ -285,12 +289,12 @@ input.doc-title:focus { border-color: var(--accent); }
 .size-btn { display: flex; align-items: center; gap: .25rem; height: 40px; padding: 0 .45rem; border: 1px solid var(--line); border-radius: 10px; background: transparent; font-size: .85rem; white-space: nowrap; }
 .size-btn .caret { font-size: .65rem; opacity: .7; }
 .size-btn[aria-expanded="true"] { color: var(--accent); border-color: var(--accent); }
-.fmtbar .page-tools button { width: 40px; height: 40px; }
+.fmtbar .page-tools button { width: 36px; height: 40px; }
 .fmtbar .ime-select { max-width: 6.5rem; }
-.fmtbar .size-select { flex: none; width: 5.2em; max-width: none; }   /* the longest entry is "96px": always the same width */
+.fmtbar .size-select { flex: none; width: 4.8em; max-width: none; }   /* the longest entry is "96px": always the same width */
 
 /* shared (somebody else's link): reading only; the owner shares and ends the link from the bar */
-#view-editor.shared #edit-btn, #view-editor.shared #share-btn { display: none; }
+#view-editor.shared #edit-btn, #view-editor.shared #menu-btn { display: none; }
 .home-logo { flex: none; display: grid; place-items: center; width: 44px; height: 44px; }
 .home-logo img { width: 36px; height: 36px; border-radius: 8px; }
 #view-editor.shared #back { display: none; }
@@ -300,17 +304,14 @@ input.doc-title:focus { border-color: var(--accent); }
 #view-editor .appbar, #view-editor .fmtbar, #view-editor .keybar { background: color-mix(in srgb, var(--bar) 80%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); color: var(--ink); }
 #view-editor .appbar { z-index: 7; }   /* its menus above the format bar and the pages (the blur makes the bar a layer of its own) */
 #view-editor .keybar { z-index: 5; }
-#view-editor .doc-title { color: var(--field-ink, var(--ink)); text-shadow: var(--field-shadow, none); }
-#view-editor input.doc-title { background: rgba(0, 0, 0, .12); border-color: color-mix(in srgb, var(--field-ink, var(--ink)) 35%, transparent); }
+
 /* the pages have no background of their own and no edge: they sit on the style of the screen; only the dotted lines between the pages remain */
 .ProseMirror .sec { background: none; box-shadow: none; outline: 0; border-radius: 0; }
 
-/* the title: a dotted line below it, like the lines between the pages; a tap sets it only while editing */
-#view-editor .doc-head { padding-bottom: calc(var(--unit, 32px) * .25); border-bottom: 1px dotted color-mix(in srgb, var(--field-ink, var(--ink)) 35%, transparent); margin-bottom: calc(var(--unit, 32px) * .5); }
 #view-editor.reading .doc-title { cursor: default; }
 
 /* a document is shown when its fonts and its layout are ready (app.js reveal) */
 .field.loading { position: relative; }
-.field.loading .doc-head, .field.loading #editor { visibility: hidden; }
+.field.loading #editor { visibility: hidden; }
 .field.loading::after { content: ''; position: absolute; left: 50%; top: 30%; width: 28px; height: 28px; margin-left: -14px; border: 3px solid color-mix(in srgb, var(--field-ink, var(--ink)) 25%, transparent); border-top-color: var(--field-ink, var(--ink)); border-radius: 50%; animation: nn-spin .8s linear infinite; }
 @keyframes nn-spin { to { transform: rotate(360deg); } }
