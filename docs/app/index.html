@@ -60,41 +60,37 @@
     <header class="appbar">
       <button id="back" class="icon-btn" type="button" aria-label="Back" data-vi-aria-label="Quay lại"><i class="fa-solid fa-arrow-left"></i></button>
       <a id="home-logo" class="home-logo" href="https://chunom.org/" hidden aria-label="Chunom" title="chunom.org"><img src="icons/icon-192.png" alt="" width="36" height="36"></a>
+      <div class="bar-title">
+        <div id="editor-title" class="doc-title" role="button" tabindex="0" aria-label="Title" data-vi-aria-label="Tiêu đề"></div>
+        <input id="title-input" class="doc-title" type="text" hidden autocomplete="off" spellcheck="false" aria-label="Title" data-vi-aria-label="Tiêu đề" placeholder="Title" data-vi-placeholder="Tiêu đề">
+      </div>
       <button id="undo-btn" class="bar-btn" type="button" disabled aria-label="Undo" data-vi-aria-label="Hoàn tác" title="Undo" data-vi-title="Hoàn tác"><span class="uni" aria-hidden="true">↶</span></button>
       <button id="redo-btn" class="bar-btn" type="button" disabled aria-label="Redo" data-vi-aria-label="Làm lại" title="Redo" data-vi-title="Làm lại"><span class="uni" aria-hidden="true">↷</span></button>
-      <span class="grow"></span>
-      <input id="read-zoom" class="read-zoom" type="range" min="50" max="300" step="any" value="100" autocomplete="off" aria-label="Zoom" data-vi-aria-label="Thu phóng">
-      <span class="grow"></span>
       <button id="keep-btn" class="icon-btn" type="button" hidden aria-label="Add to my notes" data-vi-aria-label="Thêm vào ghi chú của tôi" title="Add to my notes" data-vi-title="Thêm vào ghi chú của tôi"><i class="fa-solid fa-copy"></i></button>
-      <button id="share-btn" class="icon-btn" type="button" aria-label="Share" data-vi-aria-label="Chia sẻ" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-share-nodes"></i></button>
-      <div id="share-menu" class="menu" hidden>
-        <button id="share-link" type="button"><i class="fa-solid fa-link"></i> <span data-vi="Chia sẻ liên kết">Share link</span></button>
-        <button id="share-end" type="button" hidden><i class="fa-solid fa-link-slash"></i> <span data-vi="Hủy chia sẻ">Stop sharing</span></button>
-      </div>
       <button id="edit-btn" class="icon-btn" type="button" aria-label="Edit" data-vi-aria-label="Chỉnh sửa"><i class="fa-solid fa-pencil"></i></button>
-      <button id="style-btn" class="style-btn" type="button" aria-label="Style" data-vi-aria-label="Kiểu" aria-haspopup="true" aria-expanded="false"></button>
-      <div id="style-menu" class="menu" hidden><div id="set-style" role="radiogroup"></div></div>
       <button id="menu-btn" class="icon-btn" type="button" aria-label="Menu" data-vi-aria-label="Menu" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-ellipsis-vertical"></i></button>
       <div id="menu" class="menu" hidden>
-        <div id="page-menu"></div>
-        <div class="menu-sep" role="separator"></div>
-        <label class="menu-row"><span data-vi="QATT">QATT</span><select id="set-decoding" autocomplete="off"></select></label>
-        <label class="menu-row"><span data-vi="Phương thức nhập">Input method</span><select id="set-ime" autocomplete="off"><option value="telex">Telex</option><option value="off" data-vi="Không Telex">No Telex</option></select></label>
-        <div class="menu-sep" role="separator"></div>
+        <div id="page-menu" class="edit-only"></div>
+        <div class="menu-sep edit-only" role="separator"></div>
+        <label class="menu-row edit-only"><span data-vi="QATT">QATT</span><select id="set-decoding" autocomplete="off"></select></label>
+        <label class="menu-row edit-only"><span data-vi="Phương thức nhập">Input method</span><select id="set-ime" autocomplete="off"><option value="telex">Telex</option><option value="off" data-vi="Không Telex">No Telex</option></select></label>
+        <div class="menu-sep edit-only" role="separator"></div>
+        <button id="share-link" type="button"><i class="fa-solid fa-link"></i> <span data-vi="Chia sẻ liên kết">Share link</span></button>
+        <button id="share-end" type="button" hidden><i class="fa-solid fa-link-slash"></i> <span data-vi="Hủy chia sẻ">Stop sharing</span></button>
         <button id="menu-delete" type="button"><i class="fa-solid fa-trash"></i> <span data-vi="Xóa">Delete</span></button>
-        <div class="menu-group"><span class="menu-label" data-vi="Phông chữ">Font</span><div id="set-font" role="radiogroup"></div></div>
+        <div class="menu-group edit-only"><span class="menu-label" data-vi="Phông chữ">Font</span><div id="set-font" role="radiogroup"></div></div>
       </div>
     </header>
+    <div id="zoombar" class="zoombar">
+      <input id="read-zoom" class="read-zoom" type="range" min="50" max="300" step="any" value="100" autocomplete="off" aria-label="Zoom" data-vi-aria-label="Thu phóng">
+    </div>
     <div id="fmtbar" class="fmtbar" role="toolbar" aria-label="Format" data-vi-aria-label="Định dạng">
       <span id="toolbar" class="tools"></span>
       <select id="set-size" class="ime-select size-select" autocomplete="off" aria-label="Font size" data-vi-aria-label="Cỡ chữ" title="Font size" data-vi-title="Cỡ chữ"><optgroup label="Font size" data-vi-label="Cỡ chữ"><option value="14">14px</option><option value="16">16px</option><option value="18">18px</option><option value="20">20px</option><option value="24">24px</option><option value="28">28px</option><option value="32">32px</option><option value="36">36px</option><option value="48">48px</option><option value="72">72px</option><option value="96">96px</option></optgroup></select>
       <span id="page-tools" class="page-tools"></span>
+      <span class="pop end"><button id="style-btn" class="style-btn" type="button" aria-label="Style" data-vi-aria-label="Kiểu" aria-haspopup="true" aria-expanded="false"></button><div id="style-menu" class="menu" hidden><div id="set-style" role="radiogroup"></div></div></span>
     </div>
     <div id="field" class="field">
-      <div class="doc-head">
-        <div id="editor-title" class="doc-title" role="button" tabindex="0" aria-label="Title" data-vi-aria-label="Tiêu đề"></div>
-        <input id="title-input" class="doc-title" type="text" hidden autocomplete="off" spellcheck="false" aria-label="Title" data-vi-aria-label="Tiêu đề" placeholder="Title" data-vi-placeholder="Tiêu đề">
-      </div>
       <div id="editor"></div>
     </div>
     <div id="keybar" class="keybar" hidden>

@@ -106,7 +106,7 @@ window.notesApp = { store, ready, flush() } is for the tests.
   NomEditor.mount($('editor'), { format: $('toolbar'), dir: $('page-tools'), menu: $('page-menu'), newPage: $('page-tools') }, [NomInput.plugin]);
   $('menu').addEventListener('click', e => { if (e.target.closest('.menu-close')) closeMenu(); });
   const edited = () => { schedule(); showTitle(); buttons(); };
-  const showTitle = () => {   // above the pages; without a title a muted "Untitled"
+  const showTitle = () => {   // in the title bar; without a title a muted "Untitled"
     const t = DocsCore.title(NomEditor.text(), state.current && state.current.title), e = $('editor-title');
     e.textContent = t || Lang.t('Untitled', 'Không có tiêu đề');
     e.classList.toggle('untitled', !t);
@@ -268,18 +268,20 @@ window.notesApp = { store, ready, flush() } is for the tests.
   // ----- sharing: the link opens the app on the document by its code -----
   const SHARE_URL = code => new URL('#/s/' + code, location.href.split('#')[0]).href;   // later: an address that also gives social media a preview
   let shareState = null;   // { id, code } of the open document
+  // the menu of the document: "Stop sharing" when the document has a link
   async function openShareMenu() {
     const doc = state.current;
-    if (!DocsSync.user) { closeMenu(); snack('Sign in to share', 'Đăng nhập để chia sẻ'); return; }
-    shareState = { id: doc.id, code: null };
     $('share-end').hidden = true;
+    if (!doc || !DocsSync.user) return;
+    shareState = { id: doc.id, code: null };
     try { shareState.code = await DocsSync.shareCode(doc.id); } catch (e) { /* not shared yet, or offline */ }
-    $('share-end').hidden = !shareState.code;
+    if (state.current === doc) $('share-end').hidden = !shareState.code;
   }
-  $('share-btn').addEventListener('click', () => setTimeout(() => { if (!$('share-menu').hidden) openShareMenu(); }));   // after the menu code has opened it
+  $('menu-btn').addEventListener('click', () => setTimeout(() => { if (!$('menu').hidden) openShareMenu(); }));   // after the menu code has opened it
   $('share-link').addEventListener('click', async () => {
     closeMenu();
-    const doc = state.current; if (!doc || !DocsSync.user) return;
+    if (!DocsSync.user) { snack('Sign in to share', 'Đăng nhập để chia sẻ'); return; }
+    const doc = state.current; if (!doc) return;
     let code = shareState && shareState.id === doc.id ? shareState.code : null;
     try {
       if (!code) {
@@ -438,7 +440,7 @@ window.notesApp = { store, ready, flush() } is for the tests.
   document.addEventListener('focusout', () => setTimeout(fitKeyboard, 350));
 
   // ----- menus -----
-  const MENUS = [['menu-btn', 'menu'], ['list-menu-btn', 'list-menu'], ['style-btn', 'style-menu'], ['share-btn', 'share-menu']];
+  const MENUS = [['menu-btn', 'menu'], ['list-menu-btn', 'list-menu'], ['style-btn', 'style-menu']];
   function closeMenu() { for (const [button, menu] of MENUS) { $(menu).hidden = true; $(button).setAttribute('aria-expanded', 'false'); } }
   for (const [button, menu] of MENUS) $(button).addEventListener('click', e => {
     e.stopPropagation();
@@ -601,8 +603,8 @@ window.notesApp = { store, ready, flush() } is for the tests.
     const later = (value, at) => { next = { value, at }; if (!frame) frame = requestAnimationFrame(() => { frame = 0; setZoom(next.value, true, next.at); }); };
     const spread = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
     const mid = t => ({ x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 });
-    // while the fingers move the title and the pages are only scaled (a transform: no layout, nothing moves); at the end the zoom is set once
-    const parts = () => [field.querySelector('.doc-head'), $('editor')];
+    // while the fingers move the pages are only scaled (a transform: no layout, nothing moves); at the end the zoom is set once
+    const parts = () => [$('editor')];
     // the origin of each part is set once at the start of a gesture, from its place unscaled (a box measured while scaled would move the origin)
     const origin = at => parts().forEach(el => {
       el.style.transform = ''; el.style.willChange = 'transform';
