@@ -222,6 +222,7 @@ window.notesApp = { store, ready, flush() } is for the tests.
     $('view-editor').hidden = true;
     $('view-list').hidden = false;
     renderList();
+    if (app.ready) refreshList();
   }
   async function route() {
     const sm = /^#\/s\/([\w-]+)$/.exec(location.hash);
@@ -782,14 +783,21 @@ window.notesApp = { store, ready, flush() } is for the tests.
     if (toReading && NomEditor.editable) { if (history.state && history.state.edit) history.back(); else setEditing(false); }
   }
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && app.ready && $('conflict').hidden) freshen(true); });   // back in this window: at once
+  // the list: read again when it is shown, when the window comes back to the front and every 60 s (a note opened from it is read fresh anyway, see route())
   const listSig = docs => docs.map(d => d.id + ':' + d.updated).sort().join(',');
-  setInterval(async () => {
-    if (!app.ready || document.visibilityState !== 'visible' || !$('conflict').hidden) return;
-    if (state.current) { await freshen(true); return; }
+  let listRead = 0;
+  async function refreshList() {
+    listRead = Date.now();
     try {
       const fresh = await state.store.all();
       if (!state.current && listSig(fresh) !== listSig(state.docs)) { state.docs = fresh; renderList(); }
     } catch (e) { /* next time */ }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && app.ready && !state.current) refreshList(); });
+  setInterval(async () => {
+    if (!app.ready || document.visibilityState !== 'visible' || !$('conflict').hidden) return;
+    if (state.current) await freshen(true);   // the open document: every 5 s
+    else if (Date.now() - listRead >= 60000) await refreshList();
   }, 5000);
 
   // the newer version of the open document from the account replaces it
