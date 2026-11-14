@@ -73,11 +73,6 @@ window.notesApp = { store, ready, flush() } is for the tests.
     clearTimeout(saveTimer); saveTimer = null;
     const doc = state.current;
     if (!doc || !state.dirty || state.shared) return saving;
-    const written = writtenElsewhere(doc.id);
-    if (written) {   // another window saved this document since: nothing is written over it, the user chooses
-      saving = saving.then(async () => { try { const d = await state.store.get(doc.id); if (d && state.current === doc) askConflict(d, true); } catch (e) { /* asked at the next save */ } });
-      return saving;
-    }
     state.dirty = false;
     const text = NomEditor.text();
     if (!/\S/.test(text) && !doc.title && !state.inStore) return saving;   // a new document that stays empty
@@ -87,6 +82,12 @@ window.notesApp = { store, ready, flush() } is for the tests.
     const copy = { ...doc };
     saving = saving.then(async () => {
       try {
+        // another window (tab, the installed app) saved this document since the version known here: nothing is written over it, the user chooses
+        const there = await state.store.get(copy.id);
+        if (there && known[copy.id] !== undefined && there.updated > known[copy.id]) {
+          if (state.current === doc) { state.dirty = true; askConflict(there, true); }
+          return;
+        }
         await state.store.put(copy);
         known[copy.id] = copy.updated;
         state.inStore = true;
@@ -757,60 +758,38 @@ window.notesApp = { store, ready, flush() } is for the tests.
       if (againQueued) { againQueued = false; sync(); }
     }
   }
-  // ----- other windows (tabs, the installed app) share the storage of the browser: every write is noted in localStorage (id: updated, 0 = deleted);
-  // every 5 s the notes are compared with this window's own writes. A newer version of the open document is loaded and the window goes to the reading
-  // mode (with changes not yet saved here: the user chooses); the list is read again. Opening, editing and reading take a fresh copy too.
-  const WRITES = 'nomNotesWrites', ownWrites = {};
-  function stampWrite(id, updated) {
-    ownWrites[id] = updated;
-    try { const m = JSON.parse(localStorage.getItem(WRITES) || '{}'); m[id] = updated; localStorage.setItem(WRITES, JSON.stringify(m)); } catch (e) { /* not noted */ }
-  }
-  function writtenElsewhere(id) {   // the version another window wrote after the one known here (0: none)
-    let m; try { m = JSON.parse(localStorage.getItem(WRITES) || '{}'); } catch (e) { return 0; }
-    const u = m[id];
-    return u && known[id] !== undefined && u > known[id] && ownWrites[id] !== u ? u : 0;
-  }
-  function stamped(st) {
-    return { ...st,
-      put: async d => { await st.put(d); stampWrite(d.id, d.updated); },
-      putMany: async ds => { await st.putMany(ds); ds.forEach(d => stampWrite(d.id, d.updated)); },
-      remove: async id => { await st.remove(id); stampWrite(id, 0); } };
-  }
+  // ----- other windows (tabs, the installed app) share the storage of the browser: every 5 s the open document is compared with the one in the
+  // storage (a newer one is loaded and the window goes to the reading mode; with changes not yet saved here the user chooses; gone: back to the list),
+  // and the list is read again. Opening, editing and reading take a fresh copy too; saving checks it first (see save()).
   // the open document from the storage, if another window saved a newer version (toReading: then to the reading mode)
   async function freshen(toReading) {
     const cur = state.current;
     if (!cur || state.shared) return;
     let doc; try { doc = await state.store.get(cur.id); } catch (e) { return; }
-    if (!doc || state.current !== cur || doc.updated <= cur.updated) return;
+    if (state.current !== cur) return;
+    if (!doc) {   // deleted in another window (a document that was saved here before)
+      if (state.inStore && !state.dirty && !saveTimer && known[cur.id] !== undefined) {
+        snack('This note was deleted in another window', 'Ghi chú này đã bị xóa trong cửa sổ khác');
+        state.current = null; state.docs = state.docs.filter(d => d.id !== cur.id);
+        history.replaceState(null, '', '#/'); route();
+      }
+      return;
+    }
+    if (doc.updated <= cur.updated || (known[cur.id] !== undefined && doc.updated <= known[cur.id])) return;
     if (state.dirty || saveTimer) { askConflict(doc, true); return; }
     const i = state.docs.findIndex(d => d.id === doc.id); if (i >= 0) state.docs[i] = doc;
     reload(doc);
     if (toReading && NomEditor.editable) { if (history.state && history.state.edit) history.back(); else setEditing(false); }
   }
-  let writesSeen = null;
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && app.ready && $('conflict').hidden) freshen(true); });   // back in this window: at once
+  const listSig = docs => docs.map(d => d.id + ':' + d.updated).sort().join(',');
   setInterval(async () => {
-    if (!app.ready) return;
-    let raw; try { raw = localStorage.getItem(WRITES); } catch (e) { return; }
-    if (raw === writesSeen) return;
-    writesSeen = raw;
-    let m; try { m = JSON.parse(raw) || {}; } catch (e) { return; }
-    const other = Object.entries(m).filter(([id, u]) => ownWrites[id] !== u);
-    if (!other.length) return;
-    other.forEach(([id, u]) => { ownWrites[id] = u; });   // seen
+    if (!app.ready || document.visibilityState !== 'visible' || !$('conflict').hidden) return;
+    if (state.current) { await freshen(true); return; }
     try {
       const fresh = await state.store.all();
-      const cur = state.current;
-      state.docs = fresh.map(d => { const mine = cur && d.id === cur.id ? state.docs.find(x => x.id === d.id) : null; return mine && mine.updated > d.updated ? mine : d; });
-      if (!cur) { renderList(); return; }
-    } catch (e) { return; }
-    const cur = state.current;
-    if (cur && !state.shared && other.some(([id]) => id === cur.id)) {
-      if (m[cur.id] === 0 && !state.dirty && !saveTimer) {   // deleted in another window
-        snack('This note was deleted in another window', 'Ghi chú này đã bị xóa trong cửa sổ khác');
-        state.current = null; state.dirty = false;
-        history.replaceState(null, '', '#/'); route();
-      } else await freshen(true);
-    }
+      if (!state.current && listSig(fresh) !== listSig(state.docs)) { state.docs = fresh; renderList(); }
+    } catch (e) { /* next time */ }
   }, 5000);
 
   // the newer version of the open document from the account replaces it
@@ -1007,8 +986,8 @@ window.notesApp = { store, ready, flush() } is for the tests.
 
   // ----- start -----
   (async () => {
-    try { state.store = stamped(await DocsDB.open()); state.docs = await state.store.all(); }
-    catch (e) { state.store = stamped(DocsDB.memory()); warnUnsaved(); }
+    try { state.store = await DocsDB.open(); state.docs = await state.store.all(); }
+    catch (e) { state.store = DocsDB.memory(); warnUnsaved(); }
     app.store = state.store;
     await DocsSync.init();
     renderAccount();
