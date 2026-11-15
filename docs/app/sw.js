@@ -8,7 +8,7 @@ the next start uses the new files). Keep PRECACHE equal to what index.html loads
   - the dictionaries of ime.js: cached when first loaded and at install
   - the account (supabase.co) is never cached
 */
-const CACHE = 'nom-notes-v104';
+const CACHE = 'nom-notes-v105';
 const HERE = new URL('./', self.location).href;
 const at = p => new URL(p, HERE).href;
 const CDN = 'https://cdn.qatt.org/fonts/';
@@ -22,7 +22,7 @@ const PRECACHE = [
   FA + 'css/all.min.css', FA + 'webfonts/fa-solid-900.woff2',
   ...['qatt-pen-letters.woff2', 'qatt-pen-medium-letters.woff2', 'celluloid-letters.woff2', 'migoi-letters.woff2', 'phongthao-letters.woff2'].map(n => CDN + n),
 ]);
-const IME = [at('/chunom/js/ime.js'), at('/chunom/js/generated_chars.json'), at('/chunom/js/base_chars.json')];
+const IME = [at('/chunom/js/ime.js'), at('/chunom/js/ime_dict.json')];
 const NOM_NA_TONG = at('/chunom-assets/fonts/nomnatong-supplement.woff2?v=2');   // 8 MB: cached when a character needs it, not at install
 const NOM_FONTS = [at('/chunom-assets/fonts/hannom-gothic-supplement.woff2'), at('/chunom-assets/fonts/nomkhai-supplement.woff2'), NOM_NA_TONG];
 const FOREVER = 'nom-fonts';   // shared with nothing else on this origin; the files never change
