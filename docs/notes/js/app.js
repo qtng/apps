@@ -1064,6 +1064,9 @@ window.notesApp = { store, ready, flush() } is for the tests.
   document.addEventListener('pointerdown', () => { if (!clipRead) checkClipboard(); }, true);   // a tap gives the page the focus it may not have had at the start
   app.checkClipboard = checkClipboard;
 
+  // the title leads to chunom.org: in the installed app in a new window (the browser), on the website in the same window
+  if ((window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone) { $('app-home').target = '_blank'; $('app-home').rel = 'noopener'; }
+
   // ----- start -----
   (async () => {
     try { state.store = await DocsDB.open(); state.docs = await state.store.all(); }
