@@ -8,7 +8,7 @@ the next start uses the new files). Keep PRECACHE equal to what index.html loads
   - the dictionaries of ime.js: cached when first loaded and at install
   - the account (supabase.co) is never cached
 */
-const CACHE = 'nom-notes-v110';
+const CACHE = 'nom-notes-v111';
 const HERE = new URL('./', self.location).href;
 const at = p => new URL(p, HERE).href;
 const CDN = 'https://cdn.qatt.org/fonts/';
@@ -36,7 +36,7 @@ self.addEventListener('install', event => event.waitUntil((async () => {
   const cache = await caches.open(CACHE);
   await Promise.all(PRECACHE.map(async url => {
     const res = await fetch(new Request(url, { cache: 'reload', mode: url.startsWith(HERE.split('/').slice(0, 3).join('/')) ? 'same-origin' : 'cors' })).catch(() => null);
-    if (!res || !res.ok) throw new Error(url + ' ' + (res && res.status));
+    if (!res || !res.ok) { if (url.startsWith(CDN)) return; throw new Error(url + ' ' + (res && res.status)); }   // a font of the bucket that is gone must not stop the install (it is cached when a page loads it)
     await cache.put(url, res);
   }));
   await Promise.all(IME.map(async url => { try { const res = await fetch(new Request(url, { cache: 'reload' })); if (res.ok) await cache.put(url, res); } catch (e) { /* cached when the page loads it */ } }));
