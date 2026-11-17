@@ -1,5 +1,5 @@
 /*
-The sync of Nôm Notes (app/) with the account: the table `scrolls` of the Supabase project (private repository: tools/db/scrolls.sql; RLS: every user sees his own rows).
+The sync of Nôm Notes (notes/) with the account: the table `scrolls` of the Supabase project (private repository: tools/db/scrolls.sql; RLS: every user sees his own rows).
 The app works on the documents in the browser (db.js); signed in, it compares them with the rows of the account (at the start, when it comes to the front,
 some seconds after a change and by hand) and takes the newer side of each document. A row: id (= the id of the document), title (the title shown, for other
 lists), content (the ProseMirror JSON), settings: { app: 'nom-notes', updated, created, text, title?, format?, style? } (`updated` in milliseconds is the

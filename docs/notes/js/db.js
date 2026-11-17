@@ -1,5 +1,5 @@
 /*
-The storage of Nôm Notes (app/): IndexedDB "nom-notes", store "docs" (key id). A document is { id, content, text, created, updated } (see core.js).
+The storage of Nôm Notes (notes/): IndexedDB "nom-notes", store "docs" (key id). A document is { id, content, text, created, updated } (see core.js).
 Taken over from Qatt.org Notes (notes-db.js).
 
   DocsDB.open()    Promise of a store; rejects with an Error when IndexedDB is missing or fails

@@ -1,5 +1,5 @@
 /*
-The input of Nôm Notes (app/) on the editor (editor.js): the logic of Qatt.org Notes (notes-editor.js) for ProseMirror instead of a text area.
+The input of Nôm Notes (notes/) on the editor (editor.js): the logic of Qatt.org Notes (notes-editor.js) for ProseMirror instead of a text area.
 Needs VietnameseParser (parser.js), QattText (qatt-text.js), PaText (pa-text.js), VietIme (ime.js) and PM.
 
 Modes (the dropdown in the menu, app.js):

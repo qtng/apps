@@ -1,5 +1,5 @@
 /*
-The language of Nôm Notes (app/), English or Vietnamese (taken over from Qatt.org Notes); the app has no code of the website. Same idea as Lang of the site:
+The language of Nôm Notes (notes/), English or Vietnamese (taken over from Qatt.org Notes); the app has no code of the website. Same idea as Lang of the site:
 every tag with data-vi (and no tags inside) shows that text in Vietnamese, the English text stays in the tag and returns; the attributes
 data-vi-aria-label, data-vi-placeholder, data-vi-title and data-vi-label do the same for the attribute without the prefix.
 The language is the choice kept on this device (localStorage "nomNotesLang", and a cookie of the same name as a second copy: the browser may drop the storage of a site that is not

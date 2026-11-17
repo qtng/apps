@@ -1,5 +1,5 @@
 /*
-The logic of Nôm Notes (app/) that needs no browser: titles, search text, export and import (after NotesCore of Qatt.org Notes).
+The logic of Nôm Notes (notes/) that needs no browser: titles, search text, export and import (after NotesCore of Qatt.org Notes).
 A document is { id, content, text, created, updated } (milliseconds): content = the ProseMirror JSON of the editor (editor.js), text = its plain text (one block a line;
 kept for the list and the search). It may have title (set by hand, at most 80 code points), format: { font, size, decoding } (only what differs from the defaults) and
 style: the css of its style (background, color, text-shadow) as base64 (styles.js).

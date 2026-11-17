@@ -1,5 +1,5 @@
 /*
-The styles of the pages of Nôm Notes (app/), taken over from Qatt.org Notes: background (colour, gradients, textures), ink and the effect of the writing (shadow, glow,
+The styles of the pages of Nôm Notes (notes/), taken over from Qatt.org Notes: background (colour, gradients, textures), ink and the effect of the writing (shadow, glow,
 embossing). The effects are only faint here (a document is read and edited, the strong ones of Notes blur the characters); Light has none. A document stores the css of its
 style; one of a built-in style (known by its background) gets the effect of the list as it is now, so older documents lose their strong effects too.
 Only the pages have a style; the bars and the list keep the look of the app. Textures are small SVG noise patterns drawn by the browser (no image files).

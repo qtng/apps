@@ -1,5 +1,5 @@
 /*
-The editor of Nôm Notes (app/): the editor of Scrolls as a part that the app (app.js) mounts once and gives every document to (NomEditor below).
+The editor of Nôm Notes (notes/): the editor of Scrolls as a part that the app (app.js) mounts once and gives every document to (NomEditor below).
 
 A document is doc > section+ > group+ > (paragraph | heading)+. A section is a box (kind 'text'; later pictures or tables). A group is what the
 user sees as a page: paragraphs in a row with the same direction (horizontal: flowing text; vertical: columns of `cols` characters, right to

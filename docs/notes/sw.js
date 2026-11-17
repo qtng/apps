@@ -1,5 +1,5 @@
 /*
-Service worker of Nôm Notes (app/; after the service worker of Qatt.org Notes): the app works offline.
+Service worker of Nôm Notes (notes/; after the service worker of Qatt.org Notes): the app works offline.
 Raise CACHE when a file of PRECACHE changes (a new name = a new cache; the old ones are deleted when the new worker takes over, the open page keeps what it has and
 the next start uses the new files). Keep PRECACHE equal to what index.html loads. The addresses are relative to this file (the app may move with its repository).
   - the files of PRECACHE: from the cache, renewed in the background
@@ -8,7 +8,7 @@ the next start uses the new files). Keep PRECACHE equal to what index.html loads
   - the dictionaries of ime.js: cached when first loaded and at install
   - the account (supabase.co) is never cached
 */
-const CACHE = 'nom-notes-v111';
+const CACHE = 'nom-notes-v112';
 const HERE = new URL('./', self.location).href;
 const at = p => new URL(p, HERE).href;
 const CDN = 'https://cdn.qatt.org/fonts/';
