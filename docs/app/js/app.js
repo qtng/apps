@@ -305,8 +305,13 @@ window.notesApp = { store, ready, flush() } is for the tests.
   });
   const go = hash => { history.pushState({ fromList: true }, '', hash); return route(); };
   // a new document; the first one ever is on rice paper, later ones get a random style
-  function openNew() {
-    const now = Date.now(), doc = { id: newId(), content: null, text: '', created: now, updated: now, style: DocStyles.encode(DocStyles.css(state.docs.length === 0 ? styleById('rice-paper') : DocStyles.random())) };
+  function openNew(text = '') {
+    let content = null;
+    if (text) {   // one paragraph for every line of the text
+      content = NomEditor.emptyDoc().toJSON();
+      content.content[0].content[0].content = text.replace(/\r\n?/g, '\n').split('\n').map(l => l ? { type: 'paragraph', content: [{ type: 'text', text: l }] } : { type: 'paragraph' });
+    }
+    const now = Date.now(), doc = { id: newId(), content, text: content ? DocsCore.textOf(content) : '', created: now, updated: now, style: DocStyles.encode(DocStyles.css(state.docs.length === 0 ? styleById('rice-paper') : DocStyles.random())) };
     history.pushState({ fromList: true }, '', '#/n/' + encodeURIComponent(doc.id));
     history.pushState({ fromList: true, edit: true }, '', location.hash);
     showEditor(doc, true);
@@ -993,6 +998,63 @@ window.notesApp = { store, ready, flush() } is for the tests.
     }
     snack('Updated to the latest version', 'Đã cập nhật lên phiên bản mới nhất');
   }   // Safari ignores user-scalable=no
+
+  // ----- the clipboard: the button "Check clipboard" (bottom left of the list) shows its text in a card (Save as new note); everywhere in the app a hint of 4 seconds says when it holds CJKV or QATT/PA characters -----
+  const CJKV_CHARS = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u,   // Chinese characters, Chữ Nôm, kana, hangul
+     PUA_CHARS = /[\u{F0000}-\u{10FFFF}]/u;   // the private use plane from U+F0000: QATT and PA
+  const clip = $('clip'), hint = $('cliphint');
+  let clipText = '', clipChecking = false, clipRead = false, hintTimer = null, lastHint = 0;
+  function closeClip() { clip.hidden = true; clipText = ''; }
+  function hideHint() { clearTimeout(hintTimer); hint.hidden = true; }
+  function showClip(text) {
+    hideHint();
+    clipText = text;
+    $('clip-text').textContent = text;
+    $('clip-text').parentNode.scrollTop = 0;
+    clip.hidden = false;
+  }
+  function showHint(en, vi, text) {
+    clearTimeout(hintTimer);
+    $('cliphint-text').textContent = Lang.t(en, vi);
+    $('cliphint-show').onclick = () => showClip(text);
+    hint.hidden = false;
+    hintTimer = setTimeout(hideHint, 4000);
+  }
+  // manual = the button: a tap, so the browser may ask for the permission; it shows any text and every outcome says something
+  // automatic = when the app comes to the front: a hint if the text has CJKV or private use characters
+  async function checkClipboard(manual = false) {
+    manual = manual === true;
+    if (!clip.hidden) return;
+    if (!manual && (clipChecking || document.visibilityState !== 'visible' || !app.ready || Date.now() - lastHint < 1500 || !navigator.clipboard || !navigator.clipboard.readText)) return;
+    if (manual && !(navigator.clipboard && navigator.clipboard.readText)) return snack('The clipboard cannot be read here', 'Không đọc được bộ nhớ tạm ở đây');
+    clipChecking = true;
+    try {
+      let text = await navigator.clipboard.readText();
+      if (!text || !text.trim()) { await new Promise(r => setTimeout(r, 800)); text = await navigator.clipboard.readText(); }   // an empty answer right after the start is no proof
+      if (!text || !text.trim()) { if (manual) snack('The clipboard is empty', 'Bộ nhớ tạm trống'); return; }
+      clipRead = true;
+      if (manual) return showClip(text);
+      if (CJKV_CHARS.test(text)) { lastHint = Date.now(); showHint('The clipboard contains CJKV', 'Bộ nhớ tạm có chữ CJKV', text); }
+      else if (PUA_CHARS.test(text)) { lastHint = Date.now(); showHint('The clipboard contains QATT or PA', 'Bộ nhớ tạm có chữ QATT hoặc PA', text); }
+    } catch (e) {   // no permission yet, or the page has no focus: the automatic check tries again later, the manual one says it
+      if (manual) snack('The clipboard cannot be read: allow it in the browser', 'Không đọc được bộ nhớ tạm: hãy cho phép trong trình duyệt');
+    } finally { clipChecking = false; }
+  }
+  $('clip-check').addEventListener('click', () => checkClipboard(true));
+  $('clip-close').addEventListener('click', closeClip);
+  clip.addEventListener('click', e => { if (e.target === clip) closeClip(); });
+  $('clip-save').addEventListener('click', async () => {
+    const text = clipText;
+    closeClip();
+    if (!text) return;
+    await save();
+    openNew(text);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !clip.hidden) closeClip(); });
+  document.addEventListener('visibilitychange', () => checkClipboard());
+  window.addEventListener('focus', () => checkClipboard());
+  document.addEventListener('pointerdown', () => { if (!clipRead) checkClipboard(); }, true);   // a tap gives the page the focus it may not have had at the start
+  app.checkClipboard = checkClipboard;
 
   // ----- start -----
   (async () => {
