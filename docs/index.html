@@ -36,6 +36,8 @@
     .more { margin: 0 0 1.5rem; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .6rem; }
     .more li { padding: .7rem .9rem; background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; }
     .cta { text-align: center; margin-top: 2rem; }
+    .open-app { display: inline-flex; align-items: center; gap: .4rem; padding: .65rem 1.6rem; border-radius: 999px; background: var(--accent); color: #fff; font-weight: 600; text-decoration: none; box-shadow: 0 .3rem .8rem rgba(168, 54, 42, .35); }
+    .open-app:hover { background: #8f2d22; color: #fff; }
   </style>
 </head>
 <body>
@@ -44,7 +46,7 @@
     <div class="han mb-2">喃</div>
     <h1 class="mb-3">Nôm Notes</h1>
     <p class="lead mx-auto mb-4" data-vi="Ghi chú và tài liệu bằng chữ Nôm, theo hàng ngang hoặc cột dọc.">Notes and documents in Chữ Nôm, horizontal or vertical.</p>
-    <a class="btn btn-cinnabar btn-pill" href="notes/"><i class="bi bi-box-arrow-up-right me-1"></i> <span data-vi="Mở ứng dụng">Open the app</span></a>
+    <a class="open-app" href="notes/"><i class="bi bi-box-arrow-up-right"></i> <span data-vi="Mở ứng dụng">Open the app</span></a>
   </div>
 </header>
 <main>
@@ -76,7 +78,7 @@
     <li data-vi="Chạy được khi không có mạng và cài được lên điện thoại hoặc máy tính.">Works offline and can be installed on your phone or computer.</li>
   </ul>
   <div class="cta">
-    <a class="btn btn-cinnabar btn-pill" href="notes/"><i class="bi bi-box-arrow-up-right me-1"></i> <span data-vi="Mở ứng dụng">Open the app</span></a>
+    <a class="open-app" href="notes/"><i class="bi bi-box-arrow-up-right"></i> <span data-vi="Mở ứng dụng">Open the app</span></a>
   </div>
 </main>
 </body>
