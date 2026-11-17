@@ -1068,5 +1068,6 @@ window.notesApp = { store, ready, flush() } is for the tests.
     if (state.docs.length === 0 && !state.current && !state.invalidLink) $('new-note').click();   // nothing written yet: straight to the editor
     resume();
     app.ready = true;
+    for (const wait of [0, 700, 2000, 4000]) { await new Promise(r => setTimeout(r, wait)); await checkClipboard(); if (clipRead) break; }   // at the start the page may not have the focus yet
   })();
 })();
