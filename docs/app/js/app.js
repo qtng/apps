@@ -1004,6 +1004,14 @@ window.notesApp = { store, ready, flush() } is for the tests.
      PUA_CHARS = /[\u{F0000}-\u{10FFFF}]/u;   // the private use plane from U+F0000: QATT and PA
   const clip = $('clip'), hint = $('cliphint');
   let clipText = '', clipChecking = false, clipRead = false, hintTimer = null, lastHint = 0;
+  // the font of the card: its own choice, kept (localStorage.nomNotesClipFont); else the font of a new document
+  let clipFont = FORMAT_DEFAULTS.font;
+  try { clipFont = localStorage.getItem('nomNotesClipFont') || clipFont; } catch (e) { /* no storage */ }
+  if (!FONTS.some(f => f.family === clipFont)) clipFont = FORMAT_DEFAULTS.font;
+  const applyClipFont = () => { $('clip-text').style.setProperty('--clip-font', fontStack(clipFont)); $('clip-font').value = clipFont; };
+  for (const f of FONTS) { const o = document.createElement('option'); o.value = f.family; o.textContent = f.label; $('clip-font').append(o); }
+  $('clip-font').addEventListener('change', () => { clipFont = $('clip-font').value; try { localStorage.setItem('nomNotesClipFont', clipFont); } catch (e) { /* no storage */ } applyClipFont(); });
+  applyClipFont();
   function closeClip() { clip.hidden = true; clipText = ''; }
   function hideHint() { clearTimeout(hintTimer); hint.hidden = true; }
   function showClip(text) {
