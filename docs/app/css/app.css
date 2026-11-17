@@ -316,14 +316,18 @@ input.doc-title:focus { border-color: var(--accent); }
 .field.loading::after { content: ''; position: absolute; left: 50%; top: 30%; width: 28px; height: 28px; margin-left: -14px; border: 3px solid color-mix(in srgb, var(--field-ink, var(--ink)) 25%, transparent); border-top-color: var(--field-ink, var(--ink)); border-radius: 50%; animation: nn-spin .8s linear infinite; }
 @keyframes nn-spin { to { transform: rotate(360deg); } }
 
-/* "Check clipboard": bottom left of the list, opposite the plus button */
-.fab-clip { position: fixed; left: calc(1rem + env(safe-area-inset-left)); bottom: calc(1rem + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: .4rem; height: 44px; padding: 0 .9rem; border: 1px solid var(--line); border-radius: 14px; background: var(--menu); color: var(--ink); box-shadow: 0 4px 14px rgba(0, 0, 0, .55); }
-.clip-text { max-width: 100%; margin: auto 0; font-family: var(--doc-font), var(--nom), serif; font-size: 1.9rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; text-align: left; }
+/* "Check clipboard": an eye, as large and as orange as the plus button, left of it with a gap */
+.fab-clip { right: calc(1rem + 56px + .9rem + env(safe-area-inset-right)); }
+.clip-text { max-width: 100%; margin: auto 0; font-family: var(--clip-font, var(--doc-font)), var(--nom), serif; font-size: 1.9rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; text-align: left; }
 /* the card: a small Save at the bottom left, Close at the bottom right */
 .clip-actions { justify-content: space-between; align-items: center; }
 .clip-actions button.small { flex: none; min-height: 36px; padding: 0 .75rem; font-size: .85rem; }
 .clip-actions #clip-close { flex: none; min-width: 7rem; }
-#clip-save { color: var(--accent); border-color: var(--accent); }
+#clip-save { color: var(--muted); }   /* only an option, not a call to action */
+.clip-title:has(#clip-font) { display: flex; align-items: center; gap: .5rem; padding-top: .4rem; padding-bottom: .4rem; }
+.clip-title #clip-title { flex: 1; min-width: 0; opacity: .75; }
+#clip-font { flex: none; min-width: 0; max-width: 9.5rem; height: 34px; padding: 0 .3rem; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: inherit; font-size: .8rem; }
+#clip-font option { color: var(--ink); background: var(--bg); }
 /* the hint in the lower half of the screen (4 seconds) */
 .cliphint { position: fixed; z-index: 20; left: 50%; top: 68%; transform: translateX(-50%); display: flex; align-items: center; gap: 1rem; width: max-content; max-width: calc(100% - 2rem); padding: .6rem 1rem; border-radius: 10px; background: #51473a; color: var(--ink); box-shadow: 0 4px 14px rgba(0, 0, 0, .6); }
 .cliphint button { min-height: 40px; padding: 0 .5rem; border: 0; background: transparent; color: var(--accent); font-weight: 600; text-transform: uppercase; }
