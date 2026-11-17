@@ -54,6 +54,7 @@
     <ul id="notes" class="notes"></ul>
     <p id="empty" class="empty" hidden data-vi="Chưa có ghi chú">No notes yet</p>
     <p id="no-results" class="empty" hidden data-vi="Không có ghi chú phù hợp">No matching notes</p>
+    <button id="clip-check" class="fab-clip" type="button"><i class="fa-solid fa-clipboard"></i> <span data-vi="Kiểm tra bộ nhớ tạm">Check clipboard</span></button>
     <button id="new-note" class="fab" type="button" aria-label="New note" data-vi-aria-label="Ghi chú mới"><i class="fa-solid fa-plus"></i></button>
   </main>
   <section id="view-editor" class="view" hidden>
@@ -99,6 +100,16 @@
       <div id="symbolbar" class="symbolbar" role="group" aria-label="Special characters" data-vi-aria-label="Ký tự đặc biệt"></div>
     </div>
   </section>
+  <div id="clip" class="clip" hidden>
+    <div class="clip-sheet" role="dialog" aria-modal="true" aria-labelledby="clip-title">
+      <div id="clip-title" class="clip-title" data-vi="Văn bản từ bộ nhớ tạm">Text from the clipboard</div>
+      <div class="clip-body"><div id="clip-text" class="clip-text"></div></div>
+      <div class="clip-actions">
+        <button id="clip-save" class="small" type="button"><i class="fa-solid fa-plus"></i> <span data-vi="Lưu thành ghi chú mới">Save as new note</span></button>
+        <button id="clip-close" type="button"><i class="fa-solid fa-xmark"></i> <span data-vi="Đóng">Close</span></button>
+      </div>
+    </div>
+  </div>
   <div id="fontinfo" class="clip" hidden>
     <div class="clip-sheet" role="dialog" aria-modal="true" aria-labelledby="fontinfo-title">
       <div id="fontinfo-title" class="clip-title"></div>
@@ -125,6 +136,7 @@
       </div>
     </div>
   </div>
+  <div id="cliphint" class="cliphint" role="status" hidden><span id="cliphint-text"></span> <button id="cliphint-show" type="button" data-vi="Xem">Show</button></div>
   <div id="snackbar" class="snackbar" role="status" hidden><span id="snackbar-text"></span> <button id="undo" type="button" hidden data-vi="Hoàn tác">Undo</button></div>
 </body>
 </html>
