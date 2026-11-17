@@ -28,7 +28,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .note-preview { display: block; opacity: .8; font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .note-date { display: block; opacity: .7; font-size: .8rem; margin-top: .1rem; }
 .empty { margin: 3rem 1rem; text-align: center; color: var(--muted); }
-.fab { position: fixed; right: calc(1.75rem + env(safe-area-inset-right)); bottom: calc(2rem + env(safe-area-inset-bottom)); width: 56px; height: 56px; border: 0; border-radius: 16px; background: var(--accent); color: #fff; font-size: 1.5rem; box-shadow: 0 4px 14px rgba(0, 0, 0, .55); }
+.fab { position: fixed; right: calc(1.75rem + env(safe-area-inset-right)); bottom: calc(1.75rem + env(safe-area-inset-bottom)); width: 56px; height: 56px; border: 0; border-radius: 16px; background: var(--accent); color: #fff; font-size: 1.5rem; box-shadow: 0 4px 14px rgba(0, 0, 0, .55); }
 
 .menu { position: absolute; z-index: 10; top: calc(52px + env(safe-area-inset-top)); right: .5rem; min-width: 220px; padding: .25rem 0; background: var(--menu); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgba(0, 0, 0, .6);
   max-height: calc(100vh - 72px - env(safe-area-inset-top)); max-height: calc(100dvh - 72px - env(safe-area-inset-top)); overflow-y: auto; }
@@ -321,13 +321,12 @@ input.doc-title:focus { border-color: var(--accent); }
 .clip-text { max-width: 100%; margin: auto 0; font-family: var(--clip-font, var(--doc-font)), var(--nom), serif; font-size: 1.9rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; text-align: left; }
 /* the card: a small Save at the bottom left, Close at the bottom right */
 .clip-actions { justify-content: space-between; align-items: center; }
-.clip-actions button.small { flex: none; min-height: 36px; padding: 0 .75rem; font-size: .85rem; }
-.clip-actions #clip-close { flex: none; min-width: 7rem; }
-#clip-save { color: var(--muted); }   /* only an option, not a call to action */
+.clip-actions button.small, .clip-actions #clip-close { flex: none; min-height: 36px; padding: 0 .75rem; font-size: .85rem; }
+#clip-close { border-color: var(--accent); background: var(--accent); color: #fff; }
+.clip-actions button.btn-link { border-color: transparent; background: transparent; color: var(--muted); text-decoration: underline; }
 .clip-title:has(#clip-font) { display: flex; align-items: center; gap: .5rem; padding-top: .4rem; padding-bottom: .4rem; }
 .clip-title #clip-title { flex: 1; min-width: 0; opacity: .75; }
-#clip-font { flex: none; min-width: 0; max-width: 9.5rem; height: 34px; padding: 0 .3rem; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: inherit; font-size: .8rem; }
-#clip-font option { color: var(--ink); background: var(--bg); }
+#clip-font { flex: none; min-width: 0; max-width: 9.5rem; height: 34px; font-size: .8rem; }   /* the normal system look */
 /* the hint in the lower half of the screen (4 seconds) */
 .cliphint { position: fixed; z-index: 20; left: 50%; top: 68%; transform: translateX(-50%); display: flex; align-items: center; gap: 1rem; width: max-content; max-width: calc(100% - 2rem); padding: .6rem 1rem; border-radius: 10px; background: #51473a; color: var(--ink); box-shadow: 0 4px 14px rgba(0, 0, 0, .6); }
 .cliphint button { min-height: 40px; padding: 0 .5rem; border: 0; background: transparent; color: var(--accent); font-weight: 600; text-transform: uppercase; }
