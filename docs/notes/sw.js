@@ -8,7 +8,7 @@ the next start uses the new files). Keep PRECACHE equal to what index.html loads
   - the dictionaries of ime.js: cached when first loaded and at install
   - the account (supabase.co) is never cached
 */
-const CACHE = 'nom-notes-v119';
+const CACHE = 'nom-notes-v120';
 const HERE = new URL('./', self.location).href;
 const at = p => new URL(p, HERE).href;
 const CDN = 'https://cdn.qatt.org/fonts/';
@@ -87,8 +87,19 @@ self.addEventListener('fetch', event => {
         return res;
       } catch (e) { const old = await cache.match(strip(req.url)); if (old) return old; throw e; }
     }
+    // a file of another address (qatt.org, cdnjs) is asked with CORS: a <script> asks without it, and its answer (opaque, not ok) would never renew the copy
+    const live = new URL(req.url).origin === self.location.origin ? new Request(req, { cache: 'no-cache' }) : new Request(req.url, { mode: 'cors', credentials: 'omit', cache: 'no-cache' });
+    if (strip(req.url) === QATT + 'js/fonts.js') {   // the list of the fonts: from the server first (a font renamed or added shows at once), the copy only offline or after 3 s
+      try {
+        const res = await Promise.race([fetch(live), new Promise((_, no) => setTimeout(() => no(new Error('slow')), 3000))]);
+        if (res.ok) { cache.put(key, res.clone()); return res; }
+      } catch (e) { /* offline or slow: the copy */ }
+      const old = await cache.match(key, { ignoreSearch: true });
+      if (old) return old;
+      return fetch(req);
+    }
     const hit = await cache.match(key, { ignoreSearch: !font });
-    const refresh = fetch(new Request(req, { cache: 'no-cache' })).then(res => { if (res.ok) cache.put(key, res.clone()); return res; });   // asks the server (a 304 costs nothing): a new file is there at the next start
+    const refresh = fetch(live).then(res => { if (res.ok) cache.put(key, res.clone()); return res; });   // asks the server (a 304 costs nothing): a new file is there at the next start
     if (hit) { event.waitUntil(refresh.catch(() => {})); return hit; }
     return refresh;
   })());
