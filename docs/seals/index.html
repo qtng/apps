@@ -44,19 +44,17 @@
     }
     .card-box { background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; box-shadow: 0 .35rem 1rem rgba(60, 40, 20, .14); }
 
-    /* the seal on rice paper (in every theme: black ink must stay visible in a dark theme), its two buttons in the lower right corner */
+    /* the seal on rice paper (in every theme: black ink must stay visible in a dark theme) */
     .preview { padding: .6rem; }
-    .stage { position: relative; display: flex; align-items: center; justify-content: center; min-height: 14rem; padding: 1rem 1rem 3.4rem; border-radius: .45rem;
+    .stage { display: flex; align-items: center; justify-content: center; min-height: 14rem; padding: 1rem; border-radius: .45rem;
       background-color: #faf7f2; background-image: radial-gradient(#e5dec9 1px, transparent 1px); background-size: 16px 16px; }
     .stage canvas { display: block; width: 100%; max-width: 17rem; height: auto; max-height: 26rem; object-fit: contain; }
     @media (min-width: 992px) { .stage canvas { max-width: 20rem; max-height: 32rem; } }
-    .stage .tools { position: absolute; right: .6rem; bottom: .6rem; display: flex; gap: .4rem; }
 
-    /* the settings: three panels, each a list of rows (the name on the left, the control on the right, a hairline between) */
+    /* the settings: three panels, each a list of rows (the name on the left, the control on the right), then the download */
     .settings { display: grid; gap: 1rem; }
     .settings .card-box { padding: 0 1rem; }
     .setting { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); align-items: center; gap: .75rem; min-height: 3.4rem; padding: .55rem 0; }
-    .setting + .setting { border-top: 1px solid var(--line); }
     .setting > .name { font-size: .875rem; font-weight: 600; color: var(--muted); }
     .setting.range { grid-template-columns: 6.5rem minmax(0, 1fr) 3.4rem; }
     .setting.range output { text-align: right; font-size: .875rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -98,10 +96,6 @@
   <div class="card-box preview">
     <div class="stage">
       <canvas id="seal" width="600" height="600" role="img" aria-label="Seal" data-vi-aria-label="Con dấu"></canvas>
-      <div class="tools">
-        <button id="reroll" type="button" class="btn btn-quiet btn-pill btn-sm" title="New worn edges" data-vi-title="Vết mép mới"><i class="bi bi-shuffle"></i><span class="visually-hidden" data-vi="Vết mép mới">New worn edges</span></button>
-        <button id="download" type="button" class="btn btn-cinnabar btn-pill btn-sm"><i class="bi bi-download"></i> <span>PNG</span></button>
-      </div>
     </div>
   </div>
 
@@ -183,6 +177,8 @@
         <output id="fray-out" for="fray"></output>
       </div>
     </section>
+
+    <button id="download" type="button" class="btn btn-cinnabar btn-pill btn-lg w-100"><i class="bi bi-download"></i> <span data-vi="Tải PNG">Download PNG</span></button>
   </div>
 </main>
 
