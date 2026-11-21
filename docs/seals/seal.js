@@ -200,6 +200,24 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
   }
 
   // ---- the seal on a canvas, `scale` times the preview size
+  // a light ink (white) is shown on a warm dark grey; a very light, transparent shadow keeps it visible on any picture
+  const isLight = ink => { const n = parseInt(ink.slice(1), 16); return (n >> 16) + (n >> 8 & 255) + (n & 255) > 690; };
+  const DARK_BG = [58, 54, 50], LIGHT_BG = [250, 247, 242];
+
+  function shadow(ctx, w, h, scale) {
+    const copy = document.createElement("canvas");
+    copy.width = w; copy.height = h;
+    copy.getContext("2d").drawImage(ctx.canvas, 0, 0);
+    ctx.save();
+    ctx.globalCompositeOperation = "destination-over";
+    ctx.shadowColor = "rgba(0, 0, 0, .28)";
+    ctx.shadowBlur = 7 * scale;
+    ctx.shadowOffsetX = w + 50;   // only the shadow is drawn: the copy itself lies outside the canvas
+    ctx.shadowOffsetY = 1.5 * scale;
+    ctx.drawImage(copy, -(w + 50), 0);
+    ctx.restore();
+  }
+
   function draw(target, s, scale) {
     const { cols, rows, cells } = grid(s);
     const bw = s.border * 1.8;
@@ -236,6 +254,7 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
     ctx.globalCompositeOperation = "source-over";
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     wear(ctx, target.width, target.height, s.fray, SEED, s.ink, scale, Math.min(1, cell * 2 / (BASE - inset * 2)));   // as in two columns, finer in more
+    if (isLight(s.ink)) shadow(ctx, target.width, target.height, scale);
   }
 
   // ---- drawing on demand: once per frame, and again when the font slices of the characters have come
@@ -243,7 +262,12 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
   const render = () => {
     if (queued) return;
     queued = true;
-    requestAnimationFrame(() => { queued = false; draw(canvas, settings(), 1); });
+    requestAnimationFrame(() => {
+      queued = false;
+      const s = settings();
+      draw(canvas, s, 1);
+      canvas.parentElement.classList.toggle("dark", isLight(s.ink));
+    });
   };
   const loadFont = () => {
     const s = settings();
@@ -283,11 +307,30 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
   document.querySelectorAll('input[name="order"], input[name="style"], input[name="ink"]').forEach(el => el.addEventListener("change", render));
   for (const [input] of Object.values(sliders)) input.addEventListener("input", () => { showSliders(); render(); });
 
+  // the PNG stays transparent; the chunk bKGD only suggests a background to the viewers that read it
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  const crc32 = bytes => { let c = 0xffffffff; for (const b of bytes) c = CRC[(c ^ b) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  async function withBackground(blob, [r, g, b]) {
+    try {
+      const src = new Uint8Array(await blob.arrayBuffer());
+      const at = 8 + 25;   // signature + IHDR (4 length, 4 type, 13 data, 4 crc)
+      const chunk = new Uint8Array(12 + 6), view = new DataView(chunk.buffer);
+      view.setUint32(0, 6);
+      chunk.set([0x62, 0x4b, 0x47, 0x44], 4);   // bKGD
+      view.setUint16(8, r); view.setUint16(10, g); view.setUint16(12, b);
+      view.setUint32(14, crc32(chunk.subarray(4, 14)));
+      const out = new Uint8Array(src.length + chunk.length);
+      out.set(src.subarray(0, at)); out.set(chunk, at); out.set(src.subarray(at), at + chunk.length);
+      return new Blob([out], { type: "image/png" });
+    } catch (e) { return blob; }
+  }
+
   $("download").addEventListener("click", () => {
     const s = settings();
     const out = document.createElement("canvas");
     draw(out, s, EXPORT_SCALE);
-    out.toBlob(blob => {
+    out.toBlob(async raw => {
+      const blob = await withBackground(raw, isLight(s.ink) ? DARK_BG : LIGHT_BG);
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `seal-${s.chars.filter(Boolean).map(c => c.codePointAt(0).toString(16).toUpperCase()).join("-") || "chunom"}.png`;   // code points: some browsers drop a name with CJK characters
