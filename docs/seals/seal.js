@@ -27,7 +27,7 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
     border: [$("border"), $("border-out"), " px"],
     scale: [$("scale"), $("scale-out"), " %"],
   };
-  let seed = 4219;
+  const SEED = 4219;   // the noise of the worn edges: the same for every seal
 
   // ---- the fonts: the CJK fonts of js/fonts.js (written into the <head> by navigation.js), Migoi first if there
   const fonts = (typeof qattFontsShown === "function" ? qattFontsShown() : QATT_FONTS).filter(f => f.cjk);
@@ -232,7 +232,7 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
     });
     ctx.globalCompositeOperation = "source-over";
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    wear(ctx, target.width, target.height, s.fray, seed, s.ink, scale, Math.min(1, cell * 2 / (BASE - inset * 2)));   // as in two columns, finer in more
+    wear(ctx, target.width, target.height, s.fray, SEED, s.ink, scale, Math.min(1, cell * 2 / (BASE - inset * 2)));   // as in two columns, finer in more
   }
 
   // ---- drawing on demand: once per frame, and again when the font slices of the characters have come
@@ -279,7 +279,6 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
   $("font-next").addEventListener("click", () => stepFont(1));
   document.querySelectorAll('input[name="order"], input[name="style"], input[name="ink"]').forEach(el => el.addEventListener("change", render));
   for (const [input] of Object.values(sliders)) input.addEventListener("input", () => { showSliders(); render(); });
-  $("reroll").addEventListener("click", () => { seed = Math.floor(Math.random() * 1e9); render(); });
 
   $("download").addEventListener("click", () => {
     const s = settings();
