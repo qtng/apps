@@ -85,7 +85,7 @@
     #share.done .bi-share::before { content: "\F633"; }   /* bi-check-lg */
     .form-range::-webkit-slider-thumb { background: var(--accent); }
     .form-range::-moz-range-thumb { background: var(--accent); }
-    @media (max-width: 359.98px) { .seg .word { display: none; } .swatches { gap: .45rem; } .swatch { width: 1.55rem; height: 1.55rem; } }   /* the smallest phones: 朱 白 and the arrows only, smaller dots */
+    @media (max-width: 359.98px) { .seg .word { display: none; } .swatches { gap: .45rem; } .swatch { width: 1.55rem; height: 1.55rem; } }   /* the smallest phones: icons only, smaller dots */
   </style>
 </head>
 <body>
@@ -133,12 +133,12 @@
     <!-- the look: carving, reading order, ink -->
     <section class="card-box" aria-label="Look" data-vi-aria-label="Kiểu dáng">
       <div class="setting">
-        <span class="name" id="style-name" data-vi="Kiểu khắc">Carving</span>
+        <span class="name" id="style-name" data-vi="Kiểu">Style</span>
         <div class="btn-group seg" role="radiogroup" aria-labelledby="style-name">
           <input type="radio" class="btn-check" name="style" id="style-relief" value="relief" checked>
-          <label class="btn btn-quiet btn-sm" for="style-relief" title="Red characters (朱文)" data-vi-title="Chữ đỏ (chu văn)"><span class="han-l">朱</span><span class="word" data-vi="Đỏ">Red</span></label>
+          <label class="btn btn-quiet btn-sm" for="style-relief" title="Outline: red characters on bare paper (朱文)" data-vi-title="Viền: chữ đỏ trên nền trống (chu văn)"><i class="bi bi-square"></i><span class="word" data-vi="Viền">Outline</span></label>
           <input type="radio" class="btn-check" name="style" id="style-intaglio" value="intaglio">
-          <label class="btn btn-quiet btn-sm" for="style-intaglio" title="White characters (白文)" data-vi-title="Chữ trắng (bạch văn)"><span class="han-l">白</span><span class="word" data-vi="Trắng">White</span></label>
+          <label class="btn btn-quiet btn-sm" for="style-intaglio" title="Filled: characters cut out of a solid block (白文)" data-vi-title="Đặc: chữ khắc trong khối đặc (bạch văn)"><i class="bi bi-square-fill"></i><span class="word" data-vi="Đặc">Filled</span></label>
         </div>
       </div>
       <div class="setting">
