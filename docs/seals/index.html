@@ -45,8 +45,8 @@
     .card-box { background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; box-shadow: 0 .35rem 1rem rgba(60, 40, 20, .14); }
 
     /* the seal on rice paper (in every theme: black ink must stay visible in a dark theme) */
-    .preview { padding: .6rem; }
-    .stage { display: flex; align-items: center; justify-content: center; min-height: 14rem; padding: 1rem; border-radius: .45rem;
+    .preview { padding: 0; overflow: hidden; }   /* the paper fills the card, its corners are those of the card (of the theme) */
+    .stage { display: flex; align-items: center; justify-content: center; min-height: 14rem; padding: 1rem;
       background-color: #faf7f2; background-image: radial-gradient(#e5dec9 1px, transparent 1px); background-size: 16px 16px; }
     .stage canvas { display: block; width: 100%; max-width: 17rem; height: auto; max-height: 26rem; object-fit: contain; }
     @media (min-width: 992px) { .stage canvas { max-width: 20rem; max-height: 32rem; } }
