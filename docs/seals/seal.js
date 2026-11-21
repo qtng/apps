@@ -224,9 +224,11 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
     const bw = s.border * 1.8;
     const inset = MARGIN + bw + PAD;
     const round = s.shape === "round";
-    // round: the grid lies in the circle, its corners just inside the ring; the seal is square
-    const cell = round ? (BASE / 2 - MARGIN - bw - PAD) * 2 / Math.hypot(cols, rows) : (BASE - inset * 2) / cols;
-    const height = round ? BASE : Math.round(inset * 2 + cell * rows);
+    // round: an ellipse with the proportions of the grid (a circle for a square grid); the corners of the grid lie just inside the ring
+    const ea = BASE / 2 - MARGIN, eb = ea * rows / cols;   // the outer half axes
+    const ia = ea - bw - PAD, ib = eb - bw - PAD;
+    const cell = round ? 2 / Math.hypot(cols / ia, rows / ib) : (BASE - inset * 2) / cols;
+    const height = round ? Math.round(2 * (eb + MARGIN)) : Math.round(inset * 2 + cell * rows);
     const gx = (BASE - cols * cell) / 2, gy = (height - rows * cell) / 2;
     target.width = BASE * scale;
     target.height = height * scale;
@@ -236,14 +238,14 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
 
     const boxW = BASE - MARGIN * 2, boxH = height - MARGIN * 2;
     ctx.fillStyle = ctx.strokeStyle = s.ink;
-    const circle = r => { ctx.beginPath(); ctx.arc(BASE / 2, height / 2, r, 0, Math.PI * 2); };
+    const oval = d => { ctx.beginPath(); ctx.ellipse(BASE / 2, height / 2, ea - d, eb - d, 0, 0, Math.PI * 2); };
     if (s.style === "relief") {   // red characters in a red frame
       ctx.lineWidth = bw;
-      if (round) circle(BASE / 2 - MARGIN - bw / 2);
+      if (round) oval(bw / 2);
       else roundRect(ctx, MARGIN + bw / 2, MARGIN + bw / 2, boxW - bw, boxH - bw, s.radius * 2);
       ctx.stroke();
     } else {                      // white characters cut out of a red block
-      if (round) circle(BASE / 2 - MARGIN);
+      if (round) oval(0);
       else roundRect(ctx, MARGIN, MARGIN, boxW, boxH, s.radius * 2);
       ctx.fill();
       ctx.globalCompositeOperation = "destination-out";
