@@ -131,7 +131,7 @@
       </div>
     </section>
 
-    <!-- the look: ink first (it is changed most, next to the preview), style, shape, reading order -->
+    <!-- the look: ink first (it is changed most, next to the preview), style, reading order -->
     <section class="card-box" aria-label="Look" data-vi-aria-label="Kiểu dáng">
       <div class="setting">
         <span class="name" id="ink-name" data-vi="Màu mực">Ink</span>
@@ -151,15 +151,6 @@
           <label class="btn btn-quiet btn-sm" for="style-relief" aria-label="Outline" data-vi-aria-label="Viền"><i class="bi bi-square"></i><span class="word" data-vi="Viền">Outline</span></label>
           <input type="radio" class="btn-check" name="style" id="style-intaglio" value="intaglio">
           <label class="btn btn-quiet btn-sm" for="style-intaglio" aria-label="Filled" data-vi-aria-label="Đặc"><i class="bi bi-square-fill"></i><span class="word" data-vi="Đặc">Filled</span></label>
-        </div>
-      </div>
-      <div class="setting">
-        <span class="name" id="shape-name" data-vi="Hình dạng">Shape</span>
-        <div class="btn-group seg" role="radiogroup" aria-labelledby="shape-name">
-          <input type="radio" class="btn-check" name="shape" id="shape-square" value="square" checked>
-          <label class="btn btn-quiet btn-sm" for="shape-square"><i class="bi bi-square"></i><span class="word" data-vi="Vuông">Square</span></label>
-          <input type="radio" class="btn-check" name="shape" id="shape-round" value="round">
-          <label class="btn btn-quiet btn-sm" for="shape-round"><i class="bi bi-circle" style="display: inline-block; transform: scaleX(.75)"></i><span class="word" data-vi="Tròn">Round</span></label>
         </div>
       </div>
       <div class="setting">
@@ -185,9 +176,9 @@
         <input id="border" type="range" class="form-range" min="4" max="26" value="10">
         <output id="border-out" for="border"></output>
       </div>
-      <div class="setting range" id="radius-row">
+      <div class="setting range">
         <label for="radius" class="name" data-vi="Bo góc">Corners</label>
-        <input id="radius" type="range" class="form-range" min="0" max="45" value="10">
+        <input id="radius" type="range" class="form-range" min="0" max="140" value="10">
         <output id="radius-out" for="radius"></output>
       </div>
       <div class="setting range">
