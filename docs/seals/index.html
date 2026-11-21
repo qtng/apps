@@ -39,7 +39,7 @@
     .part + .part { margin-top: .75rem; }
     .part.ruled { padding-top: .75rem; border-top: 1px solid var(--line); }
 
-    /* the field: centred above the seal, so that the candidate list of ime.js opens over the seal */
+    /* the field */
     #text { font-size: 1.8rem; text-align: center; letter-spacing: .1em; }
     #text::placeholder { font-size: 1rem; letter-spacing: normal; vertical-align: middle; }
     .filler { gap: .4rem; cursor: pointer; }
@@ -82,19 +82,6 @@
 
 <main>
   <div class="card-box">
-    <!-- the characters: Telex and the candidates of js/ime.js; a space between two characters is an empty cell -->
-    <div class="part">
-      <label for="text" class="visually-hidden" data-vi="Chữ trên con dấu">Characters of the seal</label>
-      <div class="input-group" id="text-group">
-        <input id="text" type="text" class="form-control" value="𡦂喃麪𢶒" autocomplete="off" autocapitalize="off" spellcheck="false"
-               placeholder="Type Vietnamese, pick the Nôm" data-vi-placeholder="Gõ tiếng Việt, chọn chữ Nôm"
-               title="Telex; a space between two characters leaves a cell empty" data-vi-title="Telex; dấu cách giữa hai chữ để trống một ô">
-        <label class="input-group-text filler" id="filler-box" title="Fill an odd number with 印" data-vi-title="Thêm 印 khi số chữ lẻ">
-          <input class="form-check-input" type="checkbox" id="filler" checked><span class="han">印</span>
-        </label>
-      </div>
-    </div>
-
     <!-- the seal -->
     <div class="part">
       <div class="stage">
@@ -106,8 +93,21 @@
       </div>
     </div>
 
-    <!-- font, carving, reading order, ink -->
+    <!-- the characters, the first of the settings: Telex and the candidates of js/ime.js (the list opens below the field); a space between two characters is an empty cell -->
     <div class="part ruled">
+      <label for="text" class="cap" data-vi="Chữ">Characters</label>
+      <div class="input-group" id="text-group">
+        <input id="text" type="text" class="form-control" value="𡦂喃麪𢶒" autocomplete="off" autocapitalize="off" spellcheck="false"
+               placeholder="Type Vietnamese, pick the Nôm" data-vi-placeholder="Gõ tiếng Việt, chọn chữ Nôm"
+               title="Telex; a space between two characters leaves a cell empty" data-vi-title="Telex; dấu cách giữa hai chữ để trống một ô">
+        <label class="input-group-text filler" id="filler-box" title="Fill an odd number with 印" data-vi-title="Thêm 印 khi số chữ lẻ">
+          <input class="form-check-input" type="checkbox" id="filler" checked><span class="han">印</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- font, carving, reading order, ink -->
+    <div class="part">
       <span class="cap" id="font-cap" data-vi="Phông chữ">Font</span>
       <div class="input-group" role="group" aria-labelledby="font-cap">
         <button id="font-prev" type="button" class="btn btn-quiet" title="Previous font" data-vi-title="Phông trước"><i class="bi bi-chevron-left"></i></button>
