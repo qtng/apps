@@ -131,8 +131,19 @@
       </div>
     </section>
 
-    <!-- the look: carving, reading order, ink -->
+    <!-- the look: ink first (it is changed most, next to the preview), style, shape, reading order -->
     <section class="card-box" aria-label="Look" data-vi-aria-label="Kiểu dáng">
+      <div class="setting">
+        <span class="name" id="ink-name" data-vi="Màu mực">Ink</span>
+        <div class="swatches" role="radiogroup" aria-labelledby="ink-name">
+          <input type="radio" class="btn-check" name="ink" id="ink-1" value="#c8281e" checked><label class="swatch" style="--c: #c8281e" for="ink-1" title="Cinnabar" data-vi-title="Chu sa"><span class="visually-hidden" data-vi="Chu sa">Cinnabar</span></label>
+          <input type="radio" class="btn-check" name="ink" id="ink-2" value="#a81c14"><label class="swatch" style="--c: #a81c14" for="ink-2" title="Carmine" data-vi-title="Đỏ thẫm"><span class="visually-hidden" data-vi="Đỏ thẫm">Carmine</span></label>
+          <input type="radio" class="btn-check" name="ink" id="ink-4" value="#1f2937"><label class="swatch" style="--c: #1f2937" for="ink-4" title="Black" data-vi-title="Đen"><span class="visually-hidden" data-vi="Đen">Black</span></label>
+          <input type="radio" class="btn-check" name="ink" id="ink-5" value="#1e4aa0"><label class="swatch" style="--c: #1e4aa0" for="ink-5" title="Cobalt blue" data-vi-title="Xanh lam"><span class="visually-hidden" data-vi="Xanh lam">Cobalt blue</span></label>
+          <input type="radio" class="btn-check" name="ink" id="ink-6" value="#b8860b"><label class="swatch" style="--c: #b8860b" for="ink-6" title="Gold" data-vi-title="Vàng"><span class="visually-hidden" data-vi="Vàng">Gold</span></label>
+          <input type="radio" class="btn-check" name="ink" id="ink-7" value="#ffffff"><label class="swatch" style="--c: #ffffff; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .3)" for="ink-7" aria-label="White" data-vi-aria-label="Trắng"></label>
+        </div>
+      </div>
       <div class="setting">
         <span class="name" id="style-name" data-vi="Kiểu">Style</span>
         <div class="btn-group seg" role="radiogroup" aria-labelledby="style-name">
@@ -143,23 +154,21 @@
         </div>
       </div>
       <div class="setting">
+        <span class="name" id="shape-name" data-vi="Hình dạng">Shape</span>
+        <div class="btn-group seg" role="radiogroup" aria-labelledby="shape-name">
+          <input type="radio" class="btn-check" name="shape" id="shape-square" value="square" checked>
+          <label class="btn btn-quiet btn-sm" for="shape-square"><i class="bi bi-square"></i><span class="word" data-vi="Vuông">Square</span></label>
+          <input type="radio" class="btn-check" name="shape" id="shape-round" value="round">
+          <label class="btn btn-quiet btn-sm" for="shape-round"><i class="bi bi-circle"></i><span class="word" data-vi="Tròn">Round</span></label>
+        </div>
+      </div>
+      <div class="setting">
         <span class="name" id="order-name" data-vi="Thứ tự đọc">Reading</span>
         <div class="btn-group seg" role="radiogroup" aria-labelledby="order-name">
           <input type="radio" class="btn-check" name="order" id="order-col" value="columns" checked>
           <label class="btn btn-quiet btn-sm" for="order-col" title="In columns, from the right" data-vi-title="Theo cột, từ phải"><i class="bi bi-arrow-down"></i><span class="word" data-vi="Cột">Columns</span></label>
           <input type="radio" class="btn-check" name="order" id="order-row" value="rows">
           <label class="btn btn-quiet btn-sm" for="order-row" title="In rows, from the left" data-vi-title="Theo hàng, từ trái"><i class="bi bi-arrow-right"></i><span class="word" data-vi="Hàng">Rows</span></label>
-        </div>
-      </div>
-      <div class="setting">
-        <span class="name" id="ink-name" data-vi="Màu mực">Ink</span>
-        <div class="swatches" role="radiogroup" aria-labelledby="ink-name">
-          <input type="radio" class="btn-check" name="ink" id="ink-1" value="#c8281e" checked><label class="swatch" style="--c: #c8281e" for="ink-1" title="Cinnabar" data-vi-title="Chu sa"><span class="visually-hidden" data-vi="Chu sa">Cinnabar</span></label>
-          <input type="radio" class="btn-check" name="ink" id="ink-2" value="#a81c14"><label class="swatch" style="--c: #a81c14" for="ink-2" title="Carmine" data-vi-title="Đỏ thẫm"><span class="visually-hidden" data-vi="Đỏ thẫm">Carmine</span></label>
-          <input type="radio" class="btn-check" name="ink" id="ink-4" value="#1f2937"><label class="swatch" style="--c: #1f2937" for="ink-4" title="Black" data-vi-title="Đen"><span class="visually-hidden" data-vi="Đen">Black</span></label>
-          <input type="radio" class="btn-check" name="ink" id="ink-5" value="#1e4aa0"><label class="swatch" style="--c: #1e4aa0" for="ink-5" title="Cobalt blue" data-vi-title="Xanh lam"><span class="visually-hidden" data-vi="Xanh lam">Cobalt blue</span></label>
-          <input type="radio" class="btn-check" name="ink" id="ink-6" value="#b8860b"><label class="swatch" style="--c: #b8860b" for="ink-6" title="Gold" data-vi-title="Vàng"><span class="visually-hidden" data-vi="Vàng">Gold</span></label>
-          <input type="radio" class="btn-check" name="ink" id="ink-7" value="#ffffff"><label class="swatch" style="--c: #ffffff; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .3)" for="ink-7" aria-label="White" data-vi-aria-label="Trắng"></label>
         </div>
       </div>
     </section>
@@ -176,7 +185,7 @@
         <input id="border" type="range" class="form-range" min="4" max="26" value="10">
         <output id="border-out" for="border"></output>
       </div>
-      <div class="setting range">
+      <div class="setting range" id="radius-row">
         <label for="radius" class="name" data-vi="Bo góc">Corners</label>
         <input id="radius" type="range" class="form-range" min="0" max="45" value="10">
         <output id="radius-out" for="radius"></output>
