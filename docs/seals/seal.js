@@ -62,7 +62,6 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
     filler: fillerCheck.checked ? "印" : "",
     order: radioValue("order"),
     style: radioValue("style"),
-    shape: radioValue("shape"),
     ink: radioValue("ink"),
     radius: +sliders.radius[0].value,
     fray: +sliders.fray[0].value,
@@ -222,14 +221,12 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
   function draw(target, s, scale) {
     const { cols, rows, cells } = grid(s);
     const bw = s.border * 1.8;
-    const inset = MARGIN + bw + PAD;
-    const round = s.shape === "round";
-    // round: an ellipse with the proportions of the grid (a circle for a square grid); the corners of the grid lie just inside the ring
-    const ea = BASE / 2 - MARGIN, eb = ea * rows / cols;   // the outer half axes
-    const ia = ea - bw - PAD, ib = eb - bw - PAD;
-    const cell = round ? 2 / Math.hypot(cols / ia, rows / ib) : (BASE - inset * 2) / cols;
-    const height = round ? Math.round(2 * (eb + MARGIN)) : Math.round(inset * 2 + cell * rows);
-    const gx = (BASE - cols * cell) / 2, gy = (height - rows * cell) / 2;
+    // the corners: a radius in absolute units, so a big one gives a flattened oval (a circle for a square grid), not a pointed ellipse;
+    // the characters keep out of the rounded corners
+    const radius = s.radius * 2, inner = Math.max(0, radius - bw);
+    const inset = MARGIN + bw + PAD + inner * (1 - Math.SQRT1_2);
+    const cell = (BASE - inset * 2) / cols;
+    const height = Math.round(inset * 2 + cell * rows);
     target.width = BASE * scale;
     target.height = height * scale;
     const ctx = target.getContext("2d", { willReadFrequently: true });
@@ -238,15 +235,12 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
 
     const boxW = BASE - MARGIN * 2, boxH = height - MARGIN * 2;
     ctx.fillStyle = ctx.strokeStyle = s.ink;
-    const oval = d => { ctx.beginPath(); ctx.ellipse(BASE / 2, height / 2, ea - d, eb - d, 0, 0, Math.PI * 2); };
     if (s.style === "relief") {   // red characters in a red frame
       ctx.lineWidth = bw;
-      if (round) oval(bw / 2);
-      else roundRect(ctx, MARGIN + bw / 2, MARGIN + bw / 2, boxW - bw, boxH - bw, s.radius * 2);
+      roundRect(ctx, MARGIN + bw / 2, MARGIN + bw / 2, boxW - bw, boxH - bw, radius - bw / 2);   // the outer corner has the radius
       ctx.stroke();
     } else {                      // white characters cut out of a red block
-      if (round) oval(0);
-      else roundRect(ctx, MARGIN, MARGIN, boxW, boxH, s.radius * 2);
+      roundRect(ctx, MARGIN, MARGIN, boxW, boxH, radius);
       ctx.fill();
       ctx.globalCompositeOperation = "destination-out";
     }
@@ -257,7 +251,7 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
     ctx.textBaseline = "alphabetic";
     cells.forEach((text, i) => {
       if (!text) return;
-      const cx = gx + cell * (i % cols + 0.5), cy = gy + cell * (Math.floor(i / cols) + 0.5);
+      const cx = inset + cell * (i % cols + 0.5), cy = inset + cell * (Math.floor(i / cols) + 0.5);
       drawChar(ctx, text, cx, cy);
     });
     ctx.globalCompositeOperation = "source-over";
@@ -293,7 +287,6 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
     else if (!wanted && fillerBox.isConnected) fillerBox.remove();
   };
   const showSliders = () => {
-    $("radius-row").style.display = radioValue("shape") === "round" ? "none" : "";   // a circle has no corners
     for (const [input, out, unit] of Object.values(sliders)) out.textContent = input.value + unit;
   };
 
@@ -316,7 +309,7 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
   };
   $("font-prev").addEventListener("click", () => stepFont(-1));
   $("font-next").addEventListener("click", () => stepFont(1));
-  document.querySelectorAll('input[name="order"], input[name="style"], input[name="shape"], input[name="ink"]').forEach(el => el.addEventListener("change", () => { showSliders(); render(); }));
+  document.querySelectorAll('input[name="order"], input[name="style"], input[name="ink"]').forEach(el => el.addEventListener("change", render));
   for (const [input] of Object.values(sliders)) input.addEventListener("input", () => { showSliders(); render(); });
 
   // the PNG stays transparent; the chunk bKGD only suggests a background to the viewers that read it
@@ -353,7 +346,7 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
   });
 
   // ---- share: the settings as a link, and back
-  const RADIO = { c: ["style", { r: "relief", w: "intaglio" }], h: ["shape", { s: "square", c: "round" }], o: ["order", { c: "columns", r: "rows" }] };
+  const RADIO = { c: ["style", { r: "relief", w: "intaglio" }], o: ["order", { c: "columns", r: "rows" }] };
   const RANGE = { s: "scale", b: "border", r: "radius", w: "fray" };
   function shareLink() {
     const s = settings();
