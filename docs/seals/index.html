@@ -23,129 +23,145 @@
       border-bottom: 1px solid #e8dcc0;
       color: var(--ink);
     }
-    .hero h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: clamp(2.2rem, 7vw, 3.6rem); letter-spacing: .01em; }
+    .hero h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: clamp(2rem, 6vw, 3.2rem); letter-spacing: .01em; }
     .hero .han { color: var(--accent); font-size: 1.25rem; letter-spacing: .5em; padding-left: .5em; }
     .hero .lead { max-width: 38rem; color: #4a3d30; }
     @media (max-width: 575.98px) {
-      .hero .han { letter-spacing: .3em; }
-      .hero { padding-top: 1.2rem !important; padding-bottom: .8rem !important; margin-bottom: 1rem !important; }
+      .hero { padding-top: 1rem !important; padding-bottom: .6rem !important; margin-bottom: .8rem !important; }
+      .hero .han { letter-spacing: .3em; margin-bottom: .2rem !important; }
+      .hero h1 { margin-bottom: 0 !important; }
       .hero .lead { display: none; }
     }
-    main { max-width: 36rem; margin: 0 auto; padding: 0 1rem 2rem; }
-    .card-box { padding: 1rem; background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; box-shadow: 0 .35rem 1rem rgba(60, 40, 20, .14); }
-    .card-box + .card-box { margin-top: 1rem; }
+    main { max-width: 34rem; margin: 0 auto; padding: 0 .75rem 2rem; }
 
-    /* the input: centred above the seal, so that the candidate list of ime.js opens over the seal, with room below it */
-    #text { font-size: 2rem; text-align: center; letter-spacing: .12em; }
-    .hint { display: flex; justify-content: space-between; gap: 1rem; margin-top: .35rem; font-size: .8rem; color: var(--muted); }
+    /* one card: the field, the seal, the settings, the sliders */
+    .card-box { padding: .75rem; background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; box-shadow: 0 .35rem 1rem rgba(60, 40, 20, .14); }
+    .part + .part { margin-top: .75rem; }
+    .part.ruled { padding-top: .75rem; border-top: 1px solid var(--line); }
 
-    /* the stage: rice paper in every theme (the seal is printed on paper; black ink must stay visible in a dark theme) */
-    .stage { display: flex; align-items: center; justify-content: center; min-height: 16rem; padding: 1.5rem; border-radius: .6rem;
+    /* the field: centred above the seal, so that the candidate list of ime.js opens over the seal */
+    #text { font-size: 1.8rem; text-align: center; letter-spacing: .1em; }
+    #text::placeholder { font-size: 1rem; letter-spacing: normal; vertical-align: middle; }
+    .filler { gap: .4rem; cursor: pointer; }
+    .filler .form-check-input { margin: 0; cursor: pointer; }
+
+    /* the seal on rice paper (in every theme: black ink must stay visible in a dark theme), its two buttons in the lower right corner */
+    .stage { position: relative; display: flex; align-items: center; justify-content: center; min-height: 12rem; padding: .75rem .75rem 3.2rem; border-radius: .5rem;
       background-color: #faf7f2; background-image: radial-gradient(#e5dec9 1px, transparent 1px); background-size: 16px 16px; }
-    .stage canvas { display: block; width: 100%; max-width: 17rem; height: auto; max-height: 26rem; object-fit: contain; }
+    .stage canvas { display: block; width: 100%; max-width: 16rem; height: auto; max-height: 24rem; object-fit: contain; }
+    .stage .tools { position: absolute; right: .5rem; bottom: .5rem; display: flex; gap: .4rem; }
+    .stage .tools .btn { white-space: nowrap; }
 
-    .lbl { display: block; margin-bottom: .35rem; font-size: .8rem; font-weight: 600; color: var(--muted); }
-    .row-lbl { display: flex; justify-content: space-between; align-items: baseline; }
-    .row-lbl .lbl { margin-bottom: 0; }
-    .row-lbl output { font-size: .8rem; color: var(--muted); }
-    .chips { display: flex; flex-wrap: wrap; gap: .35rem; }
-    .chips .btn { min-width: 2.6rem; }
-    .chips .cjk { font-family: var(--font-cjk), serif; font-size: 1.05rem; line-height: 1.2; font-style: normal; text-transform: none; letter-spacing: normal; }
+    /* the settings */
+    .cap { display: block; margin-bottom: .25rem; font-size: .75rem; font-weight: 600; color: var(--muted); }
+    .opts { display: flex; flex-wrap: wrap; align-items: flex-end; gap: .75rem 1.25rem; }
+    .opts .btn-group .btn { min-width: 2.6rem; }
+    .opts .han { font-family: var(--font-cjk), serif; font-size: 1.05rem; line-height: 1.2; font-style: normal; text-transform: none; letter-spacing: normal; }
     .btn-check:checked + .btn-quiet { --bs-btn-active-bg: color-mix(in srgb, var(--accent) 14%, transparent); --bs-btn-active-border-color: var(--accent); --bs-btn-active-color: var(--accent); }
-    .swatch { display: inline-block; width: 2rem; height: 2rem; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); cursor: pointer; }
+    .swatches { display: flex; gap: .45rem; padding: .2rem 0; }
+    .swatch { display: inline-block; width: 1.7rem; height: 1.7rem; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); cursor: pointer; }
     .btn-check:checked + .swatch { outline: 2px solid var(--ink); outline-offset: 2px; }
     .btn-check:focus-visible + .swatch { outline: 2px dashed var(--accent); outline-offset: 2px; }
+
+    .sliders { display: grid; grid-template-columns: 1fr 1fr; gap: .1rem 1.25rem; }
+    .sliders label { display: flex; justify-content: space-between; font-size: .75rem; font-weight: 600; color: var(--muted); }
+    .sliders output { font-weight: 400; }
     .form-range::-webkit-slider-thumb { background: var(--accent); }
     .form-range::-moz-range-thumb { background: var(--accent); }
   </style>
 </head>
 <body>
 
-<header class="hero pt-4 pt-sm-5 pb-4 mb-4">
+<header class="hero pt-4 pb-3 mb-3">
   <div class="container text-center">
-    <div class="han mb-2">印章</div>
-    <h1 class="mb-3" data-vi="Tạo con dấu">Seal generator</h1>
+    <div class="han mb-1">印章</div>
+    <h1 class="mb-2" data-vi="Tạo con dấu">Seal generator</h1>
     <p class="lead mx-auto mb-0" data-vi="Khắc một con dấu bằng chữ Nôm và tải nó về dưới dạng PNG.">Carve a seal of Chữ Nôm characters and download it as a PNG.</p>
   </div>
 </header>
 
 <main>
-  <!-- the characters (Telex and the candidates of js/ime.js) -->
   <div class="card-box">
-    <label for="text" class="visually-hidden" data-vi="Chữ">Characters</label>
-    <input id="text" type="text" class="form-control" value="𡦂喃麪𢶒" autocomplete="off" autocapitalize="off" spellcheck="false"
-           placeholder="chữ nôm" aria-describedby="hint">
-    <div class="hint" id="hint">
-      <span data-vi="Gõ tiếng Việt (Telex), rồi chọn chữ Nôm; dấu cách để trống một ô.">Type Vietnamese (Telex), then pick the Chữ Nôm; a space leaves a cell empty.</span>
-      <span class="text-nowrap"><span id="count">4</span> · <span id="grid">2 × 2</span></span>
+    <!-- the characters: Telex and the candidates of js/ime.js; a space between two characters is an empty cell -->
+    <div class="part">
+      <label for="text" class="visually-hidden" data-vi="Chữ trên con dấu">Characters of the seal</label>
+      <div class="input-group" id="text-group">
+        <input id="text" type="text" class="form-control" value="𡦂喃麪𢶒" autocomplete="off" autocapitalize="off" spellcheck="false"
+               placeholder="Type Vietnamese, pick the Nôm" data-vi-placeholder="Gõ tiếng Việt, chọn chữ Nôm"
+               title="Telex; a space between two characters leaves a cell empty" data-vi-title="Telex; dấu cách giữa hai chữ để trống một ô">
+        <label class="input-group-text filler" id="filler-box" title="Fill an odd number with 印" data-vi-title="Thêm 印 khi số chữ lẻ">
+          <input class="form-check-input" type="checkbox" id="filler" checked><span class="han">印</span>
+        </label>
+      </div>
     </div>
-  </div>
 
-  <!-- the seal -->
-  <div class="card-box">
-    <div class="stage"><canvas id="seal" width="600" height="600" role="img" aria-label="Seal" data-vi-aria-label="Con dấu"></canvas></div>
-    <div class="d-flex gap-2 mt-3">
-      <button id="reroll" type="button" class="btn btn-quiet btn-pill flex-fill"><i class="bi bi-shuffle"></i> <span data-vi="Đổi vết mép">New edges</span></button>
-      <button id="download" type="button" class="btn btn-cinnabar btn-pill flex-fill"><i class="bi bi-download"></i> <span data-vi="Tải PNG">Download PNG</span></button>
+    <!-- the seal -->
+    <div class="part">
+      <div class="stage">
+        <canvas id="seal" width="600" height="600" role="img" aria-label="Seal" data-vi-aria-label="Con dấu"></canvas>
+        <div class="tools">
+          <button id="reroll" type="button" class="btn btn-quiet btn-pill btn-sm" title="New worn edges" data-vi-title="Vết mép mới"><i class="bi bi-shuffle"></i><span class="visually-hidden" data-vi="Vết mép mới">New worn edges</span></button>
+          <button id="download" type="button" class="btn btn-cinnabar btn-pill btn-sm"><i class="bi bi-download"></i> <span>PNG</span></button>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <!-- the settings -->
-  <div class="card-box">
-    <div class="row g-3">
-      <div class="col-12">
-        <label for="font" class="lbl" data-vi="Phông chữ">Font</label>
-        <select id="font" class="form-select"></select>
+    <!-- font, carving, reading order, ink -->
+    <div class="part ruled">
+      <span class="cap" id="font-cap" data-vi="Phông chữ">Font</span>
+      <div class="input-group" role="group" aria-labelledby="font-cap">
+        <button id="font-prev" type="button" class="btn btn-quiet" title="Previous font" data-vi-title="Phông trước"><i class="bi bi-chevron-left"></i></button>
+        <select id="font" class="form-select text-center" aria-labelledby="font-cap"></select>
+        <button id="font-next" type="button" class="btn btn-quiet" title="Next font" data-vi-title="Phông sau"><i class="bi bi-chevron-right"></i></button>
       </div>
-
-      <div class="col-sm-6">
-        <span class="lbl" id="style-lbl" data-vi="Kiểu khắc">Carving</span>
-        <div class="chips" role="radiogroup" aria-labelledby="style-lbl">
-          <input type="radio" class="btn-check" name="style" id="style-relief" value="relief" checked><label class="btn btn-quiet btn-pill btn-sm" for="style-relief" title="Red characters in a frame" data-vi-title="Chữ đỏ trong khung (chu văn)"><span data-vi="Chữ đỏ">Red</span></label>
-          <input type="radio" class="btn-check" name="style" id="style-intaglio" value="intaglio"><label class="btn btn-quiet btn-pill btn-sm" for="style-intaglio" title="White characters cut out of the ink" data-vi-title="Chữ trắng trên nền đỏ (bạch văn)"><span data-vi="Chữ trắng">White</span></label>
+    </div>
+    <div class="part opts">
+      <div>
+        <span class="cap" id="style-cap" data-vi="Kiểu khắc">Carving</span>
+        <div class="btn-group" role="radiogroup" aria-labelledby="style-cap">
+          <input type="radio" class="btn-check" name="style" id="style-relief" value="relief" checked>
+          <label class="btn btn-quiet btn-sm" for="style-relief" title="Red characters (朱文)" data-vi-title="Chữ đỏ (chu văn)"><span class="han">朱</span></label>
+          <input type="radio" class="btn-check" name="style" id="style-intaglio" value="intaglio">
+          <label class="btn btn-quiet btn-sm" for="style-intaglio" title="White characters (白文)" data-vi-title="Chữ trắng (bạch văn)"><span class="han">白</span></label>
         </div>
       </div>
-      <div class="col-sm-6">
-        <span class="lbl" id="order-lbl" data-vi="Thứ tự đọc">Reading order</span>
-        <div class="chips" role="radiogroup" aria-labelledby="order-lbl">
-          <input type="radio" class="btn-check" name="order" id="order-col" value="columns" checked><label class="btn btn-quiet btn-pill btn-sm" for="order-col" title="Top to bottom, starting with the right column" data-vi-title="Từ trên xuống, bắt đầu từ cột phải"><span data-vi="Theo cột">Columns</span></label>
-          <input type="radio" class="btn-check" name="order" id="order-row" value="rows"><label class="btn btn-quiet btn-pill btn-sm" for="order-row" title="Left to right, row by row" data-vi-title="Từ trái sang phải, từng hàng"><span data-vi="Theo hàng">Rows</span></label>
+      <div>
+        <span class="cap" id="order-cap" data-vi="Thứ tự đọc">Reading</span>
+        <div class="btn-group" role="radiogroup" aria-labelledby="order-cap">
+          <input type="radio" class="btn-check" name="order" id="order-col" value="columns" checked>
+          <label class="btn btn-quiet btn-sm" for="order-col" title="In columns, from the right" data-vi-title="Theo cột, từ phải"><i class="bi bi-arrow-down"></i><span class="visually-hidden" data-vi="Theo cột">Columns</span></label>
+          <input type="radio" class="btn-check" name="order" id="order-row" value="rows">
+          <label class="btn btn-quiet btn-sm" for="order-row" title="In rows, from the left" data-vi-title="Theo hàng, từ trái"><i class="bi bi-arrow-right"></i><span class="visually-hidden" data-vi="Theo hàng">Rows</span></label>
         </div>
       </div>
-
-      <div class="col-sm-6">
-        <span class="lbl" id="filler-lbl" title="Added to an odd number of 3 or more characters" data-vi-title="Thêm vào khi số chữ lẻ, từ 3 trở lên" data-vi="Chữ thêm">Filler</span>
-        <div class="chips" role="radiogroup" aria-labelledby="filler-lbl">
-          <input type="radio" class="btn-check" name="filler" id="filler-1" value="印" checked><label class="btn btn-quiet btn-pill btn-sm" for="filler-1"><span class="cjk">印</span></label>
-          <input type="radio" class="btn-check" name="filler" id="filler-2" value="章"><label class="btn btn-quiet btn-pill btn-sm" for="filler-2"><span class="cjk">章</span></label>
-          <input type="radio" class="btn-check" name="filler" id="filler-0" value=""><label class="btn btn-quiet btn-pill btn-sm" for="filler-0"><span data-vi="Không">None</span></label>
-        </div>
-      </div>
-      <div class="col-sm-6">
-        <span class="lbl" id="ink-lbl" data-vi="Màu mực">Ink</span>
-        <div class="chips" role="radiogroup" aria-labelledby="ink-lbl">
+      <div>
+        <span class="cap" id="ink-cap" data-vi="Màu mực">Ink</span>
+        <div class="swatches" role="radiogroup" aria-labelledby="ink-cap">
           <input type="radio" class="btn-check" name="ink" id="ink-1" value="#c8281e" checked><label class="swatch" style="--c: #c8281e" for="ink-1" title="Cinnabar" data-vi-title="Chu sa"><span class="visually-hidden" data-vi="Chu sa">Cinnabar</span></label>
           <input type="radio" class="btn-check" name="ink" id="ink-2" value="#a81c14"><label class="swatch" style="--c: #a81c14" for="ink-2" title="Carmine" data-vi-title="Đỏ thẫm"><span class="visually-hidden" data-vi="Đỏ thẫm">Carmine</span></label>
           <input type="radio" class="btn-check" name="ink" id="ink-3" value="#d9381e"><label class="swatch" style="--c: #d9381e" for="ink-3" title="Vermilion" data-vi-title="Đỏ son"><span class="visually-hidden" data-vi="Đỏ son">Vermilion</span></label>
           <input type="radio" class="btn-check" name="ink" id="ink-4" value="#1f2937"><label class="swatch" style="--c: #1f2937" for="ink-4" title="Black" data-vi-title="Đen"><span class="visually-hidden" data-vi="Đen">Black</span></label>
         </div>
       </div>
+    </div>
 
-      <div class="col-sm-6">
-        <div class="row-lbl"><label for="scale" class="lbl" data-vi="Cỡ chữ">Character size</label><output id="scale-out" for="scale"></output></div>
-        <input id="scale" type="range" class="form-range" min="65" max="115" value="92">
+    <!-- the sliders -->
+    <div class="part ruled sliders">
+      <div>
+        <label for="scale"><span data-vi="Cỡ chữ">Character size</span><output id="scale-out" for="scale"></output></label>
+        <input id="scale" type="range" class="form-range" min="65" max="115" value="100">
       </div>
-      <div class="col-sm-6">
-        <div class="row-lbl"><label for="border" class="lbl" data-vi="Độ dày viền">Border width</label><output id="border-out" for="border"></output></div>
-        <input id="border" type="range" class="form-range" min="4" max="26" value="14">
+      <div>
+        <label for="border"><span data-vi="Độ dày viền">Border width</span><output id="border-out" for="border"></output></label>
+        <input id="border" type="range" class="form-range" min="4" max="26" value="10">
       </div>
-      <div class="col-sm-6">
-        <div class="row-lbl"><label for="radius" class="lbl" data-vi="Bo góc">Corner radius</label><output id="radius-out" for="radius"></output></div>
-        <input id="radius" type="range" class="form-range" min="0" max="45" value="12">
+      <div>
+        <label for="radius"><span data-vi="Bo góc">Corner radius</span><output id="radius-out" for="radius"></output></label>
+        <input id="radius" type="range" class="form-range" min="0" max="45" value="10">
       </div>
-      <div class="col-sm-6">
-        <div class="row-lbl"><label for="fray" class="lbl" data-vi="Độ sờn mép">Worn edges</label><output id="fray-out" for="fray"></output></div>
-        <input id="fray" type="range" class="form-range" min="0" max="100" value="55">
+      <div>
+        <label for="fray"><span data-vi="Độ sờn mép">Worn edges</span><output id="fray-out" for="fray"></output></label>
+        <input id="fray" type="range" class="form-range" min="0" max="100" value="35">
       </div>
     </div>
   </div>

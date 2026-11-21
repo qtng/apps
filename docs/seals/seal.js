@@ -7,7 +7,7 @@ A space between two characters is an empty cell: the field turns it into a full-
 Layout (any number of characters; a character outside the BMP, a surrogate pair, counts as one): n columns, n the largest number with
 count > n·(n − 1), and as many rows as needed: a square n × n or one row more (1: 1 × 1, 2: 1 × 2, 3–4: 2 × 2, 5–6: 2 × 3, 7–9: 3 × 3,
 10–12: 3 × 4, 13–16: 4 × 4, …). Read from the right, column by column from the top, or row by row from the left.
-In two columns an odd number gets a filler (印, 章 or none) so that the grid is full; from three columns on there is none (the choice is disabled).
+In two columns an odd number gets the filler 印 (the checkbox next to the field) so that the grid is full; from three columns on there is none and the checkbox is hidden.
 The worn edges come from value noise in the units of the 600 px preview, so the download (drawn at twice the size) looks the same.
 */
 (() => {
@@ -19,6 +19,7 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
   const canvas = $("seal");
   const textInput = $("text");
   const fontSelect = $("font");
+  const fillerCheck = $("filler");   // also while its box is out of the page (from three columns on)
   const radioValue = name => document.querySelector(`input[name="${name}"]:checked`).value;
   const sliders = {   // id: [element, output, unit]
     radius: [$("radius"), $("radius-out"), " px"],
@@ -55,7 +56,7 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
   const settings = () => ({
     chars: chars(),
     font: fontSelect.value,
-    filler: radioValue("filler"),
+    filler: fillerCheck.checked ? "印" : "",
     order: radioValue("order"),
     style: radioValue("style"),
     ink: radioValue("ink"),
@@ -248,14 +249,12 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
     render();
   };
 
-  // the number of characters and the grid; the filler only counts in two columns
-  const fillers = document.querySelectorAll('input[name="filler"]');
-  const showCount = () => {
-    const count = chars().length, cols = columnsFor(count);
-    const { rows } = grid(settings());
-    $("count").textContent = count;
-    $("grid").textContent = count ? `${cols} × ${rows}` : "";
-    fillers.forEach(el => { el.disabled = cols >= 3; });
+  // the checkbox 印 next to the field only where it matters: in two columns (it is taken out of the group, so that the field gets its round corners back)
+  const fillerBox = $("filler-box"), textGroup = $("text-group");
+  const showFiller = () => {
+    const wanted = columnsFor(chars().length) < 3;
+    if (wanted && !fillerBox.isConnected) textGroup.append(fillerBox);
+    else if (!wanted && fillerBox.isConnected) fillerBox.remove();
   };
   const showSliders = () => { for (const [input, out, unit] of Object.values(sliders)) out.textContent = input.value + unit; };
 
@@ -267,9 +266,17 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
     else textInput.style.fontFamily = fieldFonts().map(f => `"${f}"`).join(", ");
   };
 
-  textInput.addEventListener("input", e => { if (!e.isComposing) widenSpaces(); showCount(); loadFont(); });
+  textInput.addEventListener("input", e => { if (!e.isComposing) widenSpaces(); showFiller(); loadFont(); });
   fontSelect.addEventListener("change", () => { setFieldFont(); loadFont(); });
-  document.querySelectorAll('input[name="filler"]').forEach(el => el.addEventListener("change", loadFont));
+  fillerCheck.addEventListener("change", loadFont);
+  // the buttons next to the font list go through the fonts (round)
+  const stepFont = d => {
+    const i = fonts.findIndex(f => f.family === fontSelect.value);
+    fontSelect.value = fonts[(i + d + fonts.length) % fonts.length].family;
+    fontSelect.dispatchEvent(new Event("change"));
+  };
+  $("font-prev").addEventListener("click", () => stepFont(-1));
+  $("font-next").addEventListener("click", () => stepFont(1));
   document.querySelectorAll('input[name="order"], input[name="style"], input[name="ink"]').forEach(el => el.addEventListener("change", render));
   for (const [input] of Object.values(sliders)) input.addEventListener("input", () => { showSliders(); render(); });
   $("reroll").addEventListener("click", () => { seed = Math.floor(Math.random() * 1e9); render(); });
@@ -291,7 +298,7 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
   if (document.fonts) document.fonts.addEventListener("loadingdone", render);
   setFieldFont();
   widenSpaces();
-  showCount();
+  showFiller();
   showSliders();
   loadFont();
 })();
