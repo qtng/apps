@@ -167,6 +167,11 @@
     <!-- the proportions and the wear -->
     <section class="card-box" aria-label="Details" data-vi-aria-label="Chi tiết">
       <div class="setting range">
+        <label for="radius" class="name" data-vi="Bo góc">Corners</label>
+        <input id="radius" type="range" class="form-range" min="0" max="140" value="10">
+        <output id="radius-out" for="radius"></output>
+      </div>
+      <div class="setting range">
         <label for="scale" class="name" data-vi="Cỡ chữ">Size</label>
         <input id="scale" type="range" class="form-range" min="65" max="115" value="100">
         <output id="scale-out" for="scale"></output>
@@ -175,11 +180,6 @@
         <label for="border" class="name" data-vi="Viền">Border</label>
         <input id="border" type="range" class="form-range" min="4" max="26" value="10">
         <output id="border-out" for="border"></output>
-      </div>
-      <div class="setting range">
-        <label for="radius" class="name" data-vi="Bo góc">Corners</label>
-        <input id="radius" type="range" class="form-range" min="0" max="140" value="10">
-        <output id="radius-out" for="radius"></output>
       </div>
       <div class="setting range">
         <label for="fray" class="name" data-vi="Độ sờn">Wear</label>
