@@ -8,6 +8,9 @@ Layout (any number of characters; a character outside the BMP, a surrogate pair,
 count > n·(n − 1), and as many rows as needed: a square n × n or one row more (1: 1 × 1, 2: 1 × 2, 3–4: 2 × 2, 5–6: 2 × 3, 7–9: 3 × 3,
 10–12: 3 × 4, 13–16: 4 × 4, …). Read from the right, column by column from the top, or row by row from the left.
 In two columns an odd number gets the filler 印 (the checkbox next to the field) so that the grid is full; from three columns on there is none and the checkbox is hidden.
+Share: a link with the text and every setting in its query (t text, f font, fi filler 1/0, c carving r/w, o reading c/r, i ink without #,
+s size, b border, r corners, w wear); opening it restores them (values that are not offered are left at their defaults). The share dialog of the
+system where there is one, else the link is copied.
 The worn edges come from value noise in the units of the 600 px preview, so the download (drawn at twice the size) looks the same.
 */
 (() => {
@@ -294,7 +297,46 @@ The worn edges come from value noise in the units of the 600 px preview, so the 
     }, "image/png");
   });
 
+  // ---- share: the settings as a link, and back
+  const RADIO = { c: ["style", { r: "relief", w: "intaglio" }], o: ["order", { c: "columns", r: "rows" }] };
+  const RANGE = { s: "scale", b: "border", r: "radius", w: "fray" };
+  function shareLink() {
+    const s = settings();
+    const q = new URLSearchParams({ t: s.chars.map(c => c || "\u3000").join(""), f: s.font, fi: fillerCheck.checked ? 1 : 0 });
+    for (const [key, [name, values]] of Object.entries(RADIO)) q.set(key, Object.keys(values).find(k => values[k] === radioValue(name)));
+    q.set("i", s.ink.slice(1));
+    for (const [key, id] of Object.entries(RANGE)) q.set(key, sliders[id][0].value);
+    return location.origin + location.pathname + "?" + q;
+  }
+  function applyLink() {
+    const q = new URLSearchParams(location.search);
+    if (q.has("t")) textInput.value = q.get("t");
+    if (fonts.some(f => f.family === q.get("f"))) fontSelect.value = q.get("f");
+    if (q.has("fi")) fillerCheck.checked = q.get("fi") !== "0";
+    const check = (name, value) => { const el = document.querySelector(`input[name="${name}"][value="${CSS.escape(value)}"]`); if (el) el.checked = true; };
+    for (const [key, [name, values]] of Object.entries(RADIO)) if (values[q.get(key)]) check(name, values[q.get(key)]);
+    if (/^[0-9a-f]{6}$/i.test(q.get("i") || "")) check("ink", "#" + q.get("i").toLowerCase());
+    for (const [key, id] of Object.entries(RANGE)) {
+      const input = sliders[id][0], v = Number(q.get(key));
+      if (q.has(key) && Number.isFinite(v) && v >= +input.min && v <= +input.max) input.value = v;
+    }
+  }
+  const shareBtn = $("share");
+  $("share").addEventListener("click", async () => {
+    const url = shareLink();
+    if (navigator.share) {
+      try { await navigator.share({ title: document.title, url }); return; }
+      catch (e) { if (e.name === "AbortError") return; }   // cancelled; any other error: copy instead
+    }
+    try { await navigator.clipboard.writeText(url); }
+    catch (e) { prompt(Lang.t("Copy the link:", "Sao chép liên kết:"), url); return; }
+    shareBtn.classList.add("done");
+    clearTimeout(shareBtn.timer);
+    shareBtn.timer = setTimeout(() => shareBtn.classList.remove("done"), 2000);
+  });
+
   if (document.fonts) document.fonts.addEventListener("loadingdone", render);
+  applyLink();
   setFieldFont();
   widenSpaces();
   showFiller();

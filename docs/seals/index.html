@@ -78,6 +78,11 @@
     .swatch { display: inline-block; width: 1.8rem; height: 1.8rem; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); cursor: pointer; }
     .btn-check:checked + .swatch { outline: 2px solid var(--ink); outline-offset: 2px; }
     .btn-check:focus-visible + .swatch { outline: 2px dashed var(--accent); outline-offset: 2px; }
+    /* the last step: download (the wider one) and share (a link with the text and every setting; "Link copied" for 2 s where it is copied) */
+    .actions { display: grid; grid-template-columns: 3fr 2fr; gap: .6rem; }
+    #share .copied, #share.done .idle { display: none; }
+    #share.done .copied { display: inline; }
+    #share.done .bi-share::before { content: "\F633"; }   /* bi-check-lg */
     .form-range::-webkit-slider-thumb { background: var(--accent); }
     .form-range::-moz-range-thumb { background: var(--accent); }
     @media (max-width: 359.98px) { .seg .word { display: none; } .swatches { gap: .45rem; } .swatch { width: 1.55rem; height: 1.55rem; } }   /* the smallest phones: 朱 白 and the arrows only, smaller dots */
@@ -181,7 +186,10 @@
       </div>
     </section>
 
-    <button id="download" type="button" class="btn btn-cinnabar btn-pill btn-lg w-100"><i class="bi bi-download"></i> <span data-vi="Tải PNG">Download PNG</span></button>
+    <div class="actions">
+      <button id="download" type="button" class="btn btn-cinnabar btn-pill btn-lg"><i class="bi bi-download"></i> <span data-vi="Tải PNG">Download PNG</span></button>
+      <button id="share" type="button" class="btn btn-quiet btn-pill btn-lg"><i class="bi bi-share"></i> <span class="idle" data-vi="Chia sẻ">Share</span><span class="copied" data-vi="Đã chép liên kết">Link copied</span></button>
+    </div>
   </div>
 </main>
 
