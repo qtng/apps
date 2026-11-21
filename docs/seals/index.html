@@ -59,10 +59,11 @@
     .setting.range { grid-template-columns: 6.5rem minmax(0, 1fr) 3.4rem; }
     .setting.range output { text-align: right; font-size: .875rem; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
     .setting .form-range { display: block; }
-    /* narrow phones: the name above its control (the sliders keep their row) */
+    /* narrow phones: a narrower name column; the field and the font list need the width, so their name goes above them */
     @media (max-width: 399.98px) {
-      .setting { grid-template-columns: minmax(0, 1fr); gap: .35rem; }
-      .setting.range { grid-template-columns: 4.6rem minmax(0, 1fr) 3rem; gap: .6rem; }
+      .setting { grid-template-columns: 5rem minmax(0, 1fr); gap: .6rem; }
+      .setting.range { grid-template-columns: 5rem minmax(0, 1fr) 3rem; }
+      .setting.stack { grid-template-columns: minmax(0, 1fr); gap: .35rem; }
     }
 
     #text { font-size: 1.5rem; letter-spacing: .08em; }
@@ -79,6 +80,7 @@
     .btn-check:focus-visible + .swatch { outline: 2px dashed var(--accent); outline-offset: 2px; }
     .form-range::-webkit-slider-thumb { background: var(--accent); }
     .form-range::-moz-range-thumb { background: var(--accent); }
+    @media (max-width: 359.98px) { .seg .word { display: none; } .swatches { gap: .45rem; } .swatch { width: 1.55rem; height: 1.55rem; } }   /* the smallest phones: 朱 白 and the arrows only, smaller dots */
   </style>
 </head>
 <body>
@@ -102,7 +104,7 @@
   <div class="settings">
     <!-- the text: the characters (Telex and the candidates of js/ime.js; a space between two characters is an empty cell) and the font -->
     <section class="card-box" aria-label="Text" data-vi-aria-label="Chữ">
-      <div class="setting">
+      <div class="setting stack">
         <label for="text" class="name" data-vi="Chữ">Characters</label>
         <div class="input-group" id="text-group">
           <input id="text" type="text" class="form-control" value="𡦂喃麪𢶒" autocomplete="off" autocapitalize="off" spellcheck="false"
@@ -113,7 +115,7 @@
           </label>
         </div>
       </div>
-      <div class="setting">
+      <div class="setting stack">
         <label for="font" class="name" data-vi="Phông chữ">Font</label>
         <div class="input-group">
           <button id="font-prev" type="button" class="btn btn-quiet" title="Previous font" data-vi-title="Phông trước"><i class="bi bi-chevron-left"></i></button>
@@ -129,18 +131,18 @@
         <span class="name" id="style-name" data-vi="Kiểu khắc">Carving</span>
         <div class="btn-group seg" role="radiogroup" aria-labelledby="style-name">
           <input type="radio" class="btn-check" name="style" id="style-relief" value="relief" checked>
-          <label class="btn btn-quiet btn-sm" for="style-relief" title="Red characters (朱文)" data-vi-title="Chữ đỏ (chu văn)"><span class="han-l">朱</span><span data-vi="Đỏ">Red</span></label>
+          <label class="btn btn-quiet btn-sm" for="style-relief" title="Red characters (朱文)" data-vi-title="Chữ đỏ (chu văn)"><span class="han-l">朱</span><span class="word" data-vi="Đỏ">Red</span></label>
           <input type="radio" class="btn-check" name="style" id="style-intaglio" value="intaglio">
-          <label class="btn btn-quiet btn-sm" for="style-intaglio" title="White characters (白文)" data-vi-title="Chữ trắng (bạch văn)"><span class="han-l">白</span><span data-vi="Trắng">White</span></label>
+          <label class="btn btn-quiet btn-sm" for="style-intaglio" title="White characters (白文)" data-vi-title="Chữ trắng (bạch văn)"><span class="han-l">白</span><span class="word" data-vi="Trắng">White</span></label>
         </div>
       </div>
       <div class="setting">
         <span class="name" id="order-name" data-vi="Thứ tự đọc">Reading</span>
         <div class="btn-group seg" role="radiogroup" aria-labelledby="order-name">
           <input type="radio" class="btn-check" name="order" id="order-col" value="columns" checked>
-          <label class="btn btn-quiet btn-sm" for="order-col" title="In columns, from the right" data-vi-title="Theo cột, từ phải"><i class="bi bi-arrow-down"></i><span data-vi="Cột">Columns</span></label>
+          <label class="btn btn-quiet btn-sm" for="order-col" title="In columns, from the right" data-vi-title="Theo cột, từ phải"><i class="bi bi-arrow-down"></i><span class="word" data-vi="Cột">Columns</span></label>
           <input type="radio" class="btn-check" name="order" id="order-row" value="rows">
-          <label class="btn btn-quiet btn-sm" for="order-row" title="In rows, from the left" data-vi-title="Theo hàng, từ trái"><i class="bi bi-arrow-right"></i><span data-vi="Hàng">Rows</span></label>
+          <label class="btn btn-quiet btn-sm" for="order-row" title="In rows, from the left" data-vi-title="Theo hàng, từ trái"><i class="bi bi-arrow-right"></i><span class="word" data-vi="Hàng">Rows</span></label>
         </div>
       </div>
       <div class="setting">
@@ -150,6 +152,7 @@
           <input type="radio" class="btn-check" name="ink" id="ink-2" value="#a81c14"><label class="swatch" style="--c: #a81c14" for="ink-2" title="Carmine" data-vi-title="Đỏ thẫm"><span class="visually-hidden" data-vi="Đỏ thẫm">Carmine</span></label>
           <input type="radio" class="btn-check" name="ink" id="ink-3" value="#d9381e"><label class="swatch" style="--c: #d9381e" for="ink-3" title="Vermilion" data-vi-title="Đỏ son"><span class="visually-hidden" data-vi="Đỏ son">Vermilion</span></label>
           <input type="radio" class="btn-check" name="ink" id="ink-4" value="#1f2937"><label class="swatch" style="--c: #1f2937" for="ink-4" title="Black" data-vi-title="Đen"><span class="visually-hidden" data-vi="Đen">Black</span></label>
+          <input type="radio" class="btn-check" name="ink" id="ink-5" value="#003153"><label class="swatch" style="--c: #003153" for="ink-5" title="Prussian blue" data-vi-title="Xanh Phổ"><span class="visually-hidden" data-vi="Xanh Phổ">Prussian blue</span></label>
         </div>
       </div>
     </section>
