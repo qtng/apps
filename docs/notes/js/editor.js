@@ -1019,8 +1019,10 @@ const uiPlugin = new Plugin({
     props: { handleDOMEvents: { focus: () => { setTimeout(() => UI.refresh()); return false; }, blur: () => { setTimeout(() => UI.refresh()); return false; } } },
 });
 
-// ---------------------------------------------------------------- ime.js (Telex only) on the editor
-// VietIme works on a field; this adapter shows it the text of the block with the caret
+// ---------------------------------------------------------------- ime.js on the editor: Telex, and the Chữ Nôm candidates for the key bar
+// VietIme works on a field; this adapter shows it the text of the block with the caret. Its own list stays closed (candidates: false); with renderItem
+// it still finds the candidates (ime.shown after ime.refresh()), which the key bar shows (input.js), and ime.select() puts one in: so a choice is
+// counted (the candidates the user takes rise) and syllables chosen one after the other find the word of several syllables
 class ImeAdapter {
     constructor(view) { this.view = view; this.imeTarget = view.dom; this.style = {}; this.readOnly = false; this.tagName = 'DIV'; }
     get $from() { return this.view.state.selection.$from; }
@@ -1071,6 +1073,7 @@ const imeKeys = new Plugin({
 // NomEditor.open(content, onChange)   a document (its JSON, or null for a new one); onChange() after every change of the document
 // NomEditor.json(), .text()           the document as JSON, its text (blocks on lines of their own)
 // NomEditor.setEditable(on), .editable, .focus(), .caret(), .setCaret(pos), .insert(text), .undo(), .redo(), .canUndo(), .canRedo(), .setTelex(on), .relayout()
+// NomEditor.ime                       the VietIme of the editor (its candidates for the key bar, see input.js)
 let view = null, changed = null, editable = false;
 const NomEditor = {
     schema, upgrade, emptyDoc,
@@ -1107,7 +1110,7 @@ const NomEditor = {
         UI.view = view;
         RubyBox.init(view);
         const adapter = new ImeAdapter(view);
-        ime = new VietIme(adapter, { defer: true, telex: true, candidates: false });
+        ime = new VietIme(adapter, { defer: true, telex: true, candidates: false, renderItem: () => {} });
         adapter.ime = ime;
         window.scrollsEditor = view;   // for tests
         document.fonts.ready.then(() => this.relayout());
@@ -1135,13 +1138,14 @@ const NomEditor = {
     redo() { redo(view.state, view.dispatch); },
     canUndo: () => undo(view.state),
     canRedo: () => redo(view.state),
-    setTelex(on) { if (ime) ime.update({ telex: !!on, candidates: false }); if (RubyBox.ime) RubyBox.ime.update({ telex: !!on, candidates: false }); },
+    setTelex(on) { if (ime) ime.update({ telex: !!on }); if (RubyBox.ime) RubyBox.ime.update({ telex: !!on, candidates: false }); },
     relayout() { measure.cache.clear(); if (Layout.current) Layout.current.schedule(true); },
     // a promise: the layout is done (the two-column text set, the bands cut)
     settled() { return new Promise(res => { if (!Layout.current) return res(); Layout.current.waiters.push(res); Layout.current.schedule(true); }); },
     // the rhyme table of the document (parser.js): the readings of the ruby in QATT
     setDecoding(name) { Scripts.decoding = name; if (Scripts.parser) Scripts.parser.setDecoding(name); },
     get view() { return view; },
+    get ime() { return ime; },
 };
 window.NomEditor = NomEditor;
 })();
