@@ -5,81 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex">
   <title>Nôm Notes</title>
-  <meta name="description" content="Notes and documents in Chữ Nôm, horizontal or vertical, with readings, fonts and paper styles.">
-  <link rel="icon" href="notes/icons/icon-192.png">
-  <link rel="stylesheet" href="https://qatt.org/vendor/bootstrap/css/bootstrap.min.css">
-  <link rel="stylesheet" href="https://qatt.org/css/site.css">
-  <link rel="stylesheet" href="https://qatt.org/vendor/bootstrap-icons/bootstrap-icons.min.css">
-  <script src="https://qatt.org/js/navigation.js"></script>
-  <style>
-    :root { --ink: #2b2118; --accent: #a8362a; --paper: #f7efdc; --line: #e4d9c0; --muted: #7b6c58; }
-    body { margin: 0; background: var(--paper); color: var(--ink); }
-    .hero {
-      background:
-        radial-gradient(60rem 22rem at 50% -6rem, rgba(168, 54, 42, .10), transparent 70%),
-        linear-gradient(180deg, var(--paper) 0%, #fffdf8 100%);
-      border-bottom: 1px solid #e8dcc0;
-      color: var(--ink);
-    }
-    .hero h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: clamp(2.2rem, 7vw, 3.6rem); letter-spacing: .01em; }
-    .hero .han { color: var(--accent); font-size: 1.25rem; letter-spacing: .5em; padding-left: .5em; }
-    .hero .lead { max-width: 38rem; color: #4a3d30; }
-    main { max-width: 62rem; margin: 0 auto; padding: 0 1rem 3rem; }
-    .feature { display: grid; grid-template-columns: 1fr; gap: 1rem; align-items: center; margin: 0 0 1.5rem; padding: 1rem 1.2rem; background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; box-shadow: 0 .35rem 1rem rgba(60, 40, 20, .14); }
-    .feature h2 { font-size: 1.3rem; margin: 0 0 .5rem; }
-    .feature p { margin: 0; color: #4a3d30; }
-    .feature img { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 .25rem .7rem rgba(60, 40, 20, .18); }
-    @media (min-width: 768px) {
-      .feature { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-      .feature.flip img { order: -1; }
-    }
-    .more { margin: 0 0 1.5rem; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .6rem; }
-    .more li { padding: .7rem .9rem; background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; }
-    .cta { text-align: center; margin-top: 2rem; }
-    .open-app { display: inline-flex; align-items: center; gap: .4rem; padding: .65rem 1.6rem; border-radius: 999px; background: var(--accent); color: #fff; font-weight: 600; text-decoration: none; box-shadow: 0 .3rem .8rem rgba(168, 54, 42, .35); }
-    .open-app:hover { background: #8f2d22; color: #fff; }
-  </style>
+  <meta http-equiv="refresh" content="0; url=notes/">
+  <link rel="canonical" href="https://chunom.org/apps/notes/">
 </head>
 <body>
-<header class="hero pt-4 pt-sm-5 pb-4 mb-4">
-  <div class="container text-center">
-    <div class="han mb-2">喃</div>
-    <h1 class="mb-3">Nôm Notes</h1>
-    <p class="lead mx-auto mb-4" data-vi="Ghi chú và tài liệu bằng chữ Nôm, theo hàng ngang hoặc cột dọc.">Notes and documents in Chữ Nôm, horizontal or vertical.</p>
-    <a class="open-app" href="notes/"><i class="bi bi-box-arrow-up-right"></i> <span data-vi="Mở ứng dụng">Open the app</span></a>
-  </div>
-</header>
-<main>
-  <section class="feature">
-    <div>
-      <h2 data-vi="Viết như các văn bản xưa">Write like old texts</h2>
-      <p data-vi="Chữ Nôm theo cột dọc hoặc hàng ngang, với tiêu đề, đoạn hai cột và phần đọc đặt bên cạnh chữ.">Chữ Nôm in vertical columns or horizontal lines, with headings, two-column passages and readings beside the characters.</p>
-    </div>
-    <img src="img/nom-notes-editor.webp" width="1080" height="746" alt="Chữ Nôm in vertical columns with readings beside the characters" loading="lazy">
-  </section>
-  <section class="feature flip">
-    <div>
-      <h2 data-vi="Chọn phong cách của riêng bạn">Pick a look of your own</h2>
-      <p data-vi="Mỗi ghi chú có phông chữ, cỡ chữ và kiểu giấy riêng, từ nền tối đến giấy cổ.">Every note has its own font, text size and paper style, from dark backgrounds to old paper.</p>
-    </div>
-    <img src="img/nom-notes-styles.webp" width="1080" height="844" alt="The palette of paper styles" loading="lazy">
-  </section>
-  <section class="feature">
-    <div>
-      <h2 data-vi="Xem bộ nhớ tạm">See your clipboard</h2>
-      <p data-vi="Nút hình con mắt hiển thị nội dung bộ nhớ tạm bằng phông chữ bạn chọn và cho phép lưu thành ghi chú mới. Khi bộ nhớ tạm có chữ Hán, chữ Nôm, QATT hoặc PA, một gợi ý ngắn sẽ hiện ra.">The eye button shows what is on your clipboard in the font of your choice and lets you save it as a new note. When the clipboard holds Chinese characters, Chữ Nôm, QATT or PA, a short hint appears.</p>
-    </div>
-    <img src="img/nom-notes-clipboard.webp" width="1080" height="520" alt="The clipboard viewer with a font menu" loading="lazy">
-  </section>
-  <ul class="more">
-    <li data-vi="Gõ Quốc Ngữ bằng Telex và chọn chữ Nôm, hoặc viết thẳng bằng QATT và PA.">Type Quốc Ngữ with Telex and pick the Chữ Nôm, or write QATT and PA directly.</li>
-    <li data-vi="Chia sẻ ghi chú bằng liên kết, xuất và nhập ghi chú.">Share a note with a link, and export or import your notes.</li>
-    <li data-vi="Đăng nhập để đồng bộ trên mọi thiết bị.">Sign in to keep your notes in sync on all your devices.</li>
-    <li data-vi="Chạy được khi không có mạng và cài được lên điện thoại hoặc máy tính.">Works offline and can be installed on your phone or computer.</li>
-  </ul>
-  <div class="cta">
-    <a class="open-app" href="notes/"><i class="bi bi-box-arrow-up-right"></i> <span data-vi="Mở ứng dụng">Open the app</span></a>
-  </div>
-</main>
+  <p><a href="notes/">Nôm Notes</a></p>
 </body>
 </html>
