@@ -129,7 +129,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* ruby: the base keeps its cell; the reading sits beside it (horizontal: over, vertical: right), narrowed along the line by editor.js (--rs) */
 .ProseMirror .rb { position: relative; }
 .ProseMirror .grp p:has(.rb), .ProseMirror .grp h1:has(.rb), .ProseMirror .grp h2:has(.rb) { line-height: 2.2; }
-/* the box of a character differs with the font (--rt-a, --rt-d, --rt-bw: its content area in em, measured by editor.js; the reference is QATT Pen: 1.16 above,
+/* the box of a character differs with the font (--rt-a, --rt-d, --rt-bw: its content area in em, measured by editor.js; the reference is Pen: 1.16 above,
    .288 below the baseline, 1.448 wide), the ink in it does not move as much: the reading and the line are set back by what the box lacks (the factors from
    measuring the fonts); --bem is the size of the base in px, whatever the size of the reading */
 @property --bem { syntax: '<length>'; inherits: true; initial-value: 0px; }
@@ -166,7 +166,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .ProseMirror .rb[data-punct]::after { color: var(--mark-ink); font-weight: 700; line-height: 1; margin-inline-end: -1em; }
 .ProseMirror .rb[data-punct="stop"]::after { content: '\3002'; }
 .ProseMirror .rb[data-punct="comma"]::after { content: '\3001'; }
-/* the middle of the mark on the lower right corner of the cell of the character (measured on the forms of QATT Pen: the vertical forms stand in the upper
+/* the middle of the mark on the lower right corner of the cell of the character (measured on the forms of Pen: the vertical forms stand in the upper
    right, the horizontal ones in the lower left of their cell; the offsets in em of the mark) */
 .ProseMirror .rb[data-punct]::after { position: relative; }
 .ProseMirror .grp.v .rb[data-punct="stop"]::after { left: .186em; top: -.214em; }

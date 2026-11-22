@@ -8,7 +8,7 @@ the next start uses the new files). Keep PRECACHE equal to what index.html loads
   - the dictionaries of ime.js: cached when first loaded and at install
   - the account (supabase.co) is never cached
 */
-const CACHE = 'nom-notes-v121';
+const CACHE = 'nom-notes-v122';
 const HERE = new URL('./', self.location).href;
 const at = p => new URL(p, HERE).href;
 const CDN = 'https://cdn.qatt.org/fonts/';
@@ -20,7 +20,7 @@ const PRECACHE = [
 ].map(at).concat([
   QATT + 'js/parser.js', QATT + 'js/qatt-text.js', QATT + 'js/pa-text.js', QATT + 'js/fonts.js', QATT + 'vendor/supabase/supabase.min.js', QATT + 'js/supabase.js', QATT + 'js/login.js',
   FA + 'css/all.min.css', FA + 'webfonts/fa-solid-900.woff2',
-  ...['qatt-pen-letters.woff2', 'qatt-pen-medium-letters.woff2', 'celluloid-letters.woff2', 'migoi-letters.woff2', 'phongthao-letters.woff2'].map(n => CDN + n),
+  ...['pen-letters.woff2', 'pen-medium-letters.woff2', 'celluloid-letters.woff2', 'migoi-letters.woff2', 'phongthao-letters.woff2'].map(n => CDN + n),
 ]);
 const IME = [at('/chunom/js/ime.js'), at('/chunom/js/ime_dict.json')];
 const NOM_NA_TONG = at('/chunom-assets/fonts/nomnatong-supplement.woff2?v=2');   // 8 MB: cached when a character needs it, not at install

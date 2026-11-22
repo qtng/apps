@@ -330,7 +330,7 @@ const measure = {
         return this.cache.get(key);
     },
     // the content area of a character in the font: how far it reaches above and below the baseline, in em ({ a, d }; the sum is the width of a
-    // column in vertical text). Fonts differ (QATT Pen 1.16 and .288, others .88 and .12): the annotations are set from these numbers (--rt-a, --rt-d,
+    // column in vertical text). Fonts differ (Pen 1.16 and .288, others .88 and .12): the annotations are set from these numbers (--rt-a, --rt-d,
     // --rt-bw in css), not from the edge of the box, so that they stand the same at every font
     box(cs) {
         const font = `${cs.fontStyle} ${cs.fontWeight} 100px ${cs.fontFamily}`, key = 'box\n' + font;
