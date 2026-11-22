@@ -12,6 +12,7 @@ joiners that join nothing go.
   NomInput.plugin            the ProseMirror plugin (editor.js puts it first)
   NomInput.setMode(m), .mode
   NomInput.candidates()      the word before the caret as QATT and PA { glyph, script, run() }, then the Chữ Nôm characters { glyph, reading, definition, first?, run() }
+                             (those of the VietIme of the editor, NomEditor.ime: run() chooses through it, so the choice is counted and joins syllables to words)
   NomInput.variants()        the three slots [neutral, tham, plain]: { id, view, en, vi, run() } or undefined
   NomInput.setDecoding(name, recode)  the rhyme table; recode: every cell of the document is read with the old one and written with the new one
   NomInput.onUpdate          called after every change of the editor (the key bar follows it)
@@ -136,8 +137,8 @@ const NomInput = (() => {
             if (!b || b.at < 2 || b.text[b.at - 1] !== ' ') return;
             const m = WORD_END.exec(b.text.slice(0, b.at - 1));
             if (!m) return;
-            const c = VietIme.lookup(m[0])[0];
-            if (c) v.dispatch(v.state.tr.insertText(c.glyph, b.start + b.at - 1 - m[0].length, b.start + b.at).scrollIntoView());
+            const c = nom()[0];
+            if (c) choose(c);
           }, 0);
           return false;
         },
@@ -204,9 +205,22 @@ const NomInput = (() => {
     if (dismissed) return [];
     const out = [];
     for (const sc of ['qatt', 'pa']) { const glyph = inScript(w.word, sc); if (glyph) out.push({ glyph, script: sc, run: () => put(w.from, w.at, glyph) }); }
-    VietIme.lookup(w.word).forEach((c, i) => out.push({ ...c, first: i === 0, run: () => put(w.from, w.at, c.glyph) }));
+    nom().forEach((c, i) => out.push({ glyph: c.glyph, reading: readingOf(c.key), definition: (c.definition || '').trim(), first: i === 0, run: () => choose(c) }));
     return out;
   };
+  // the Chữ Nôm candidates of the word before the caret, from the VietIme of the editor (its items, in its order)
+  const ime = () => (typeof NomEditor !== 'undefined' && NomEditor.ime) || null;
+  const nom = () => { const m = ime(); if (!m) return []; m.refresh(); return m.shown.map(s => s.item); };
+  // puts a candidate in through the VietIme (it replaces the word, counts the choice and remembers it for the next syllable)
+  const choose = c => {
+    const m = ime();
+    if (!m) return;
+    let i = m.shown.findIndex(s => s.item === c);
+    if (i < 0) { m.refresh(); i = m.shown.findIndex(s => s.item.glyph === c.glyph); }
+    if (i >= 0) m.select(i);
+    view.focus();
+  };
+  const readingOf = key => key.replace(/(\p{Lu})/gu, ' $1').trim().toLowerCase();   // "chữNôm" → "chữ nôm" (as VietIme.lookup)
   // the variants of the QATT characters before the caret (Tham Thư, Neutral tone, Unmarked)
   const variants = () => {
     const SLOTS = ['neutral', 'tham', 'plain'];
