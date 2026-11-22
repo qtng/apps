@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Seal generator | Chunom.org</title>
+  <meta name="description" content="Make a seal (印章) of Chữ Nôm characters in the fonts of chunom.org and download it as a PNG.">
+  <link rel="stylesheet" href="https://qatt.org/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://qatt.org/css/site.css">
+  <link rel="stylesheet" href="https://qatt.org/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <script src="https://qatt.org/js/navigation.js"></script>
+  <style>
+    :root { --ink: #2b2118; --accent: #a8362a; --paper: #f7efdc; --line: #e4d9c0; --muted: #7b6c58; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    .hero {
+      background:
+        radial-gradient(60rem 22rem at 50% -6rem, rgba(168, 54, 42, .10), transparent 70%),
+        linear-gradient(180deg, var(--paper) 0%, #fffdf8 100%);
+      border-bottom: 1px solid #e8dcc0;
+      color: var(--ink);
+    }
+    .hero h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: clamp(2.2rem, 7vw, 3.6rem); letter-spacing: .01em; }
+    .hero .han { color: var(--accent); font-size: 1.25rem; letter-spacing: .5em; padding-left: .5em; }
+    .hero .lead { max-width: 38rem; color: #4a3d30; }
+    main { max-width: 62rem; margin: 0 auto; padding: 0 1rem 3rem; }
+    .feature { display: grid; grid-template-columns: 1fr; gap: 1rem; align-items: center; margin: 0 0 1.5rem; padding: 1rem 1.2rem; background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; box-shadow: 0 .35rem 1rem rgba(60, 40, 20, .14); }
+    .feature h2 { font-size: 1.3rem; margin: 0 0 .5rem; }
+    .feature p { margin: 0; color: #4a3d30; }
+    .feature img { display: block; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 .25rem .7rem rgba(60, 40, 20, .18); }
+    @media (min-width: 768px) {
+      .feature { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+      .feature.flip img { order: -1; }
+    }
+    .more { margin: 0 0 1.5rem; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .6rem; }
+    .more li { padding: .7rem .9rem; background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; }
+    .cta { text-align: center; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+<header class="hero pt-4 pt-sm-5 pb-4 mb-4">
+  <div class="container text-center">
+    <div class="han mb-2">印章</div>
+    <h1 class="mb-3" data-vi="Tạo con dấu">Seal generator</h1>
+    <p class="lead mx-auto mb-4" data-vi="Khắc chữ Nôm thành con dấu và tải về dạng PNG.">Carve a seal of Chữ Nôm characters and download it as a PNG.</p>
+    <a class="btn btn-cinnabar btn-pill btn-lg" href="./"><i class="bi bi-box-arrow-up-right"></i> <span data-vi="Mở ứng dụng">Open the app</span></a>
+  </div>
+</header>
+<main>
+  <section class="feature">
+    <div>
+      <h2 data-vi="Con dấu của riêng bạn">A seal of your own</h2>
+      <p data-vi="Gõ tiếng Việt bằng Telex, chọn chữ Nôm, và con dấu hiện ra ngay khi bạn gõ, trong các phông chữ của chunom.org.">Type Vietnamese with Telex, pick the Chữ Nôm, and the seal appears as you type, in the fonts of chunom.org.</p>
+    </div>
+    <img src="../img/seal-generator.webp" width="1024" height="635" alt="The seal generator: a red seal of four characters next to its settings" loading="lazy">
+  </section>
+  <ul class="more">
+    <li data-vi="Chữ đỏ trong khung hoặc chữ trắng trên nền đặc, với nhiều màu mực.">Red characters in a frame or white characters cut out of a solid block, in several inks.</li>
+    <li data-vi="Góc vuông, bo tròn, hình bầu dục hoặc hình tròn.">Square, rounded, oval or round.</li>
+    <li data-vi="Đọc theo cột từ phải hoặc theo hàng, với mép sờn như con dấu thật.">Read in columns from the right or in rows, with worn edges like a real seal.</li>
+    <li data-vi="Tải về PNG nền trong suốt, hoặc chia sẻ bằng liên kết.">Download a PNG with a transparent background, or share it as a link.</li>
+  </ul>
+  <div class="cta">
+    <a class="btn btn-cinnabar btn-pill btn-lg" href="./"><i class="bi bi-box-arrow-up-right"></i> <span data-vi="Mở ứng dụng">Open the app</span></a>
+  </div>
+</main>
+</body>
+</html>
