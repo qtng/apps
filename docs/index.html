@@ -13,9 +13,8 @@
   <script src="https://qatt.org/js/navigation.js"></script>
   <!--
     The overview of the apps of chunom.org/apps/. Every app has a folder of its own:
-      a web tool:  <app>/index.html is the tool (with the look of the site), e.g. seals/
-      a PWA:       <app>/index.html is the landing page, <app>/app.html the app (manifest, service worker), e.g. notes/
-      a download:  the link goes to the file itself
+      <app>/index.html is the app itself (a web tool with the look of the site, or a PWA with its manifest and service worker),
+      <app>/about.html its page of information (linked without .html: <app>/about); a download: the link goes to the file itself
   -->
   <style>
     :root { --ink: #2b2118; --accent: #a8362a; --paper: #f7efdc; --line: #e4d9c0; --muted: #7b6c58; }
@@ -57,13 +56,13 @@
   <ul class="apps">
     <li class="app">
       <img class="icon" src="notes/icons/icon-192.png" width="64" height="64" alt="">
-      <h2><a href="notes/">Nôm Notes</a></h2>
+      <h2><a href="notes/about">Nôm Notes</a></h2>
       <p data-vi="Ghi chú và tài liệu bằng chữ Nôm, theo hàng ngang hoặc cột dọc.">Notes and documents in Chữ Nôm, horizontal or vertical.</p>
       <span class="kind"><i class="bi bi-download"></i><span data-vi="Cài được, chạy khi không có mạng">Installable, works offline</span></span>
     </li>
     <li class="app d-none">   <!-- hidden until the owner releases it -->
       <span class="icon glyph" aria-hidden="true">印</span>
-      <h2><a href="seals/" data-vi="Tạo con dấu">Seal generator</a></h2>
+      <h2><a href="seals/about" data-vi="Tạo con dấu">Seal generator</a></h2>
       <p data-vi="Khắc chữ Nôm thành con dấu và tải về dạng PNG.">Carve a seal of Chữ Nôm characters and download it as a PNG.</p>
       <span class="kind"><i class="bi bi-globe2"></i><span data-vi="Trong trình duyệt">In the browser</span></span>
     </li>
