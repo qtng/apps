@@ -1,21 +1,21 @@
 /*
 Service worker of Nôm Notes (notes/; after the service worker of Qatt.org Notes): the app works offline.
 Raise CACHE when a file of PRECACHE changes (a new name = a new cache; the old ones are deleted when the new worker takes over, the open page keeps what it has and
-the next start uses the new files). Keep PRECACHE equal to what index.html loads. The addresses are relative to this file (the app may move with its repository).
+the next start uses the new files). Keep PRECACHE equal to what app.html loads (and the landing page, see LANDING). The addresses are relative to this file (the app may move with its repository).
   - the files of PRECACHE: from the cache, renewed in the background
   - the fonts of cdn.qatt.org: cached when first used (a file with ?v= for ever, others renewed in the background)
   - the Nôm fonts of the Chunom site: cached for ever, the small ones at install, the big one when first needed
   - the dictionaries of ime.js: cached when first loaded and at install
   - the account (supabase.co) is never cached
 */
-const CACHE = 'nom-notes-v122';
+const CACHE = 'nom-notes-v123';
 const HERE = new URL('./', self.location).href;
 const at = p => new URL(p, HERE).href;
 const CDN = 'https://cdn.qatt.org/fonts/';
 const QATT = 'https://qatt.org/';
 const FA = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/';
 const PRECACHE = [
-  './', 'css/app.css', 'js/lang.js', 'js/styles.js', 'js/core.js', 'js/db.js', 'js/sync.js', 'js/input.js', 'js/editor.js', 'js/app.js',
+  'app.html', './', 'css/app.css', 'js/lang.js', 'js/styles.js', 'js/core.js', 'js/db.js', 'js/sync.js', 'js/input.js', 'js/editor.js', 'js/app.js',
   'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', '../js/prosemirror.js', '../css/prosemirror.css',
 ].map(at).concat([
   QATT + 'js/parser.js', QATT + 'js/qatt-text.js', QATT + 'js/pa-text.js', QATT + 'js/fonts.js', QATT + 'vendor/supabase/supabase.min.js', QATT + 'js/supabase.js', QATT + 'js/login.js',
@@ -27,7 +27,9 @@ const NOM_NA_TONG = at('/chunom-assets/fonts/nomnatong-supplement.woff2?v=2');  
 const NOM_FONTS = [at('/chunom-assets/fonts/hannom-gothic-supplement.woff2'), at('/chunom-assets/fonts/nomkhai-supplement.woff2'), NOM_NA_TONG];
 const FOREVER = 'nom-fonts';   // shared with nothing else on this origin; the files never change
 const FONT_FILE = /^https:\/\/cdn\.qatt\.org\/fonts\/(?:web\/)?[\w.-]+\.woff2(?:\?v=[\w%.-]+)?$/;
-const PAGE = at('./');
+const PAGE = at('app.html');
+// the landing page (./): installations made before 2026-11 start there (it was the app); it sends them on to app.html, also offline
+const LANDING = at('./');
 const strip = u => u.split('#')[0].split('?')[0];
 
 const staleCaches = (keys, current) => keys.filter(k => k.startsWith('nom-notes-') && k !== current);
@@ -54,7 +56,7 @@ self.addEventListener('activate', event => event.waitUntil((async () => {
 
 const known = req => {
   const url = strip(req.url);
-  if (req.mode === 'navigate') return url === PAGE || url === at('index.html');
+  if (req.mode === 'navigate') return url === PAGE || url === LANDING || url === at('index.html');
   return PRECACHE.some(p => strip(p) === url) || IME.includes(url) || FONT_FILE.test(req.url);
 };
 
@@ -73,7 +75,7 @@ self.addEventListener('fetch', event => {
   }
   if (!known(req)) return;
   event.respondWith((async () => {
-    const cache = await caches.open(CACHE), key = req.mode === 'navigate' ? PAGE : req.url;
+    const cache = await caches.open(CACHE), key = req.mode === 'navigate' ? (strip(req.url) === PAGE ? PAGE : LANDING) : req.url;
     const font = FONT_FILE.test(req.url);
     if (font && req.url.includes('?v=')) {   // a font with its version: a new date is a new address, so cache first; older versions of the file go
       const hit = await cache.match(req.url);
