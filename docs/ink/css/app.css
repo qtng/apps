@@ -1,0 +1,94 @@
+/* Nôm Ink: one screen, the question above, the field below (its place and size change with every character) */
+:root {
+  --paper: #f4efe5; --panel: #ebe3d4; --ink: #2b2520; --muted: #7a6e60; --line: #cbbfac; --field: #fffdf8; --accent: #a8362a; --accent-ink: #fff;
+  --red: #c92a2a; --yellow: #e8a317; --green: #2b8a3e; --off: color-mix(in srgb, var(--ink) 12%, transparent);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --paper: #1e1a15; --panel: #2d2720; --ink: #ece4d6; --muted: #a59a8a; --line: #4a4136; --field: #26211b; --accent: #e0674f; --accent-ink: #1e1a15; color-scheme: dark; }
+}
+* { box-sizing: border-box }
+html, body { height: 100%; margin: 0 }
+body {
+  display: flex; flex-direction: column; height: 100dvh; overflow: hidden; overscroll-behavior: none;
+  background: var(--paper); color: var(--ink); font: 15px/1.35 system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation }
+
+/* the bar */
+.bar { position: relative; display: flex; align-items: center; gap: .5rem; padding: .45rem .75rem; background: var(--panel); border-bottom: 1px solid var(--line) }
+.title { margin: 0; font-size: 1.05rem; font-weight: 700; white-space: nowrap }
+.stats { flex: 1; min-width: 0; color: var(--muted); font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 2rem; overflow: hidden }
+.seg button { border: 0; background: none; padding: .25rem .65rem; font-size: .82rem; white-space: nowrap }
+.seg button.on { background: var(--ink); color: var(--paper) }
+.icon { border: 0; background: none; font-size: 1.3rem; line-height: 1; padding: .1rem .35rem }
+.menu { position: absolute; right: .5rem; top: calc(100% + .25rem); z-index: 20; display: flex; flex-direction: column; min-width: 14rem; padding: .3rem;
+  background: var(--field); border: 1px solid var(--line); border-radius: .7rem; box-shadow: 0 .6rem 1.6rem rgba(0, 0, 0, .2) }
+.menu[hidden] { display: none }
+.menu button, .menu a { text-align: left; border: 0; background: none; padding: .55rem .7rem; border-radius: .45rem; color: inherit; text-decoration: none }
+.menu button:hover, .menu a:hover { background: var(--panel) }
+@media (max-width: 420px) { .lang { display: none } }
+
+/* the question */
+.prompt { position: relative; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr; gap: .2rem .6rem; padding: .5rem .75rem .6rem; min-height: 9.5rem }
+.thumbs { grid-column: 1 / -1; display: flex; gap: .3rem; height: 2.6rem; overflow-x: auto; scrollbar-width: none }
+.thumbs canvas { flex: none; width: 2.6rem; height: 2.6rem; background: var(--field); border: 1px solid var(--line); border-radius: .35rem }
+.thumbs .none { color: var(--muted); font-size: .8rem; align-self: center }
+.ask { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0 }
+.glyph-well { position: relative; height: 4.6rem; width: 100%; display: flex; justify-content: center }
+.glyph { font-family: "Pen", serif; font-size: 4rem; line-height: 4.6rem; color: var(--ink) }
+.reading { font-size: 1.05rem; color: var(--muted); margin-top: -.15rem }
+.chip { margin-top: .25rem; padding: .1rem .7rem; border-radius: 2rem; background: var(--ink); color: var(--paper); font-size: .8rem; font-weight: 600 }
+.chip:empty { display: none }
+.game-line { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums }
+.game-line:empty { display: none }
+.light { grid-column: 2; grid-row: 2; justify-self: end; display: flex; flex-direction: column; justify-content: center; gap: .3rem; padding: .3rem; border-radius: 2rem; background: var(--panel); align-self: center }
+.light i { display: block; width: .95rem; height: .95rem; border-radius: 50%; background: var(--off); transition: background .15s, box-shadow .15s }
+.light[data-on="red"] .red { background: var(--red); box-shadow: 0 0 .5rem var(--red) }
+.light[data-on="yellow"] .yellow { background: var(--yellow); box-shadow: 0 0 .5rem var(--yellow) }
+.light[data-on="green"] .green { background: var(--green); box-shadow: 0 0 .6rem var(--green) }
+.timer { position: absolute; left: 0; right: 0; bottom: 0; height: .25rem; background: transparent }
+.timer i { display: block; height: 100%; width: 0; background: var(--accent) }
+
+/* the game: the character falls in its well; the faster, the more red */
+body[data-mode="game"] .glyph-well { height: 9.5rem; overflow: hidden; border-bottom: 2px solid var(--line) }
+body[data-mode="game"] .glyph { position: absolute; top: 0; left: 50%; transform: translate(-50%, var(--fall, 0px)); will-change: transform }
+body[data-mode="game"] .calm-only, body[data-mode="game"] .thumbs { visibility: hidden }
+body[data-mode="calm"] .timer { display: none }
+
+/* the stage: the field somewhere in it */
+.stage { position: relative; flex: 1; min-height: 0; margin: 0 .5rem; border-top: 1px dashed var(--line) }
+.field { position: absolute; background: var(--field); border: 2px dashed var(--line); border-radius: .6rem; touch-action: none; transition: none }
+.field canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; border-radius: .5rem }
+.field.shake { animation: shake .3s }
+@keyframes shake { 25% { transform: translateX(-6px) } 75% { transform: translateX(6px) } }
+.beside { position: absolute; font-family: "Pen", serif; color: color-mix(in srgb, var(--ink) 35%, transparent); line-height: 1; pointer-events: none }
+
+/* the tools */
+.tools { display: grid; grid-template-columns: 1fr 1fr 1fr 1.4fr; gap: .4rem; padding: .5rem .5rem .6rem }
+body[data-mode="game"] .tools { grid-template-columns: 1fr 1fr 0 1.4fr }
+.tool { border: 1px solid var(--line); background: var(--field); border-radius: 2rem; padding: .7rem .3rem; font-weight: 600; font-size: .9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.tool.main { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.tool:disabled { opacity: .45; cursor: default }
+
+/* the message after a sample was kept, with Undo */
+.toast { position: fixed; left: 50%; bottom: 5.2rem; transform: translateX(-50%); z-index: 30; display: flex; align-items: center; gap: .8rem;
+  padding: .45rem .5rem .45rem 1rem; border-radius: 2rem; background: var(--ink); color: var(--paper); font-size: .88rem; box-shadow: 0 .4rem 1.2rem rgba(0, 0, 0, .25) }
+.toast[hidden] { display: none }
+.toast button { border: 0; border-radius: 2rem; padding: .25rem .8rem; background: var(--paper); color: var(--ink); font-weight: 600 }
+
+/* start, pause and game over */
+.overlay { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(20, 15, 10, .55) }
+.overlay[hidden] { display: none }
+.card { width: min(24rem, 100%); padding: 1.3rem 1.3rem 1.1rem; border-radius: 1rem; background: var(--paper); text-align: center; box-shadow: 0 1rem 3rem rgba(0, 0, 0, .35) }
+.card h2 { margin: 0 0 .4rem; font-size: 1.35rem }
+.card p { margin: .35rem 0; color: var(--muted) }
+.card .big { font-size: 2.4rem; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums }
+.card .row { display: flex; gap: .5rem; justify-content: center; margin-top: 1rem }
+.card .row button { flex: 1; border: 1px solid var(--line); background: var(--field); border-radius: 2rem; padding: .7rem 1rem; font-weight: 700 }
+.card .row button.main { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
+.card .last { display: flex; gap: .3rem; justify-content: center; flex-wrap: wrap; margin-top: .6rem }
+.card .last canvas { width: 2.6rem; height: 2.6rem; background: var(--field); border: 1px solid var(--line); border-radius: .35rem }
