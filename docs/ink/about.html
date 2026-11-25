@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex">
+  <title>Nôm Ink | Chunom.org</title>
+  <meta name="description" content="Write Chữ Nôm by hand, calmly or as a game: a collection of handwriting, kept on your device.">
+  <link rel="stylesheet" href="https://qatt.org/vendor/bootstrap/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://qatt.org/css/site.css">
+  <link rel="stylesheet" href="https://qatt.org/vendor/bootstrap-icons/bootstrap-icons.min.css">
+  <script src="https://qatt.org/js/navigation.js"></script>
+  <style>
+    :root { --ink: #2b2118; --accent: #a8362a; --paper: #f7efdc; --line: #e4d9c0; --muted: #7b6c58; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    .hero {
+      background:
+        radial-gradient(60rem 22rem at 50% -6rem, rgba(168, 54, 42, .10), transparent 70%),
+        linear-gradient(180deg, var(--paper) 0%, #fffdf8 100%);
+      border-bottom: 1px solid #e8dcc0;
+      color: var(--ink);
+    }
+    .hero h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: clamp(2.2rem, 7vw, 3.6rem); letter-spacing: .01em; }
+    .hero .han { color: var(--accent); font-size: 1.25rem; letter-spacing: .5em; padding-left: .5em; }
+    .hero .lead { max-width: 38rem; color: #4a3d30; }
+    main { max-width: 62rem; margin: 0 auto; padding: 0 1rem 3rem; }
+    .feature { display: grid; grid-template-columns: 1fr; gap: 1rem; align-items: center; margin: 0 0 1.5rem; padding: 1rem 1.2rem; background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; box-shadow: 0 .35rem 1rem rgba(60, 40, 20, .14); }
+    .feature h2 { font-size: 1.3rem; margin: 0 0 .5rem; }
+    .feature p { margin: 0; color: #4a3d30; }
+    .feature img { display: block; width: 100%; max-width: 20rem; margin: 0 auto; height: auto; border-radius: 8px; box-shadow: 0 .25rem .7rem rgba(60, 40, 20, .18); }
+    @media (min-width: 768px) {
+      .feature { grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+      .feature.flip img { order: -1; }
+    }
+    .more { margin: 0 0 1.5rem; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: .6rem; }
+    .more li { padding: .7rem .9rem; background: #fffdf8; border: 1px solid var(--line); border-radius: .7rem; }
+    .cta { text-align: center; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+<header class="hero pt-4 pt-sm-5 pb-4 mb-4">
+  <div class="container text-center">
+    <div class="han mb-2">墨跡</div>
+    <h1 class="mb-3">Nôm Ink</h1>
+    <p class="lead mx-auto mb-4" data-vi="Viết chữ Nôm bằng tay, thong thả hoặc như một trò chơi. Các mẫu được lưu trên thiết bị của bạn.">Write Chữ Nôm by hand, calmly or as a game. The samples are kept on your device.</p>
+    <a class="btn btn-cinnabar btn-pill btn-lg" href="./" data-stat="app_start:ink"><i class="bi bi-box-arrow-up-right"></i> <span data-vi="Mở ứng dụng">Open the app</span></a>
+  </div>
+</header>
+<main>
+  <section class="feature">
+    <div>
+      <h2 data-vi="Thong thả">Calm</h2>
+      <p data-vi="Một chữ hiện lên với cách đọc, bạn viết nó vào ô bên dưới. Ô đổi chỗ và kích thước với mỗi chữ, để nét viết đa dạng. Đèn tín hiệu cho biết khi nào chữ đã đủ.">A character appears with its reading, you write it in the field below. The field changes its place and size with every character, so that the writing varies. A traffic light tells you when the character is complete.</p>
+    </div>
+    <img src="../img/ink-calm.webp" width="540" height="1099" alt="Nôm Ink: the character 𠊛 above, written by hand in the field below, the light green" loading="lazy">
+  </section>
+  <section class="feature flip">
+    <div>
+      <h2 data-vi="Trò chơi">Game</h2>
+      <p data-vi="Chữ rơi xuống: hãy viết xong trước khi nó chạm đáy. Mỗi cấp nhanh hơn.">The character falls: write it before it lands. Every level is faster.</p>
+    </div>
+    <img src="../img/ink-game.webp" width="540" height="1099" alt="Nôm Ink in the game: a falling character, the time bar and the score" loading="lazy">
+  </section>
+  <ul class="more">
+    <li data-vi="Các chữ của từ điển chunom.org; chữ có ít mẫu nhất đến trước, không bao giờ liên tiếp.">The characters of the chunom.org dictionary; those with the fewest samples come first, never one right after the other.</li>
+    <li data-vi="Các mẫu trước của bạn hiện nhỏ phía trên chữ.">Your earlier samples appear small above the character.</li>
+    <li data-vi="Mọi thứ ở lại trên thiết bị; menu xuất các mẫu thành một tệp JSON.">Everything stays on your device; the menu exports the samples as a JSON file.</li>
+    <li data-vi="Dùng được không cần mạng, cài như một ứng dụng.">Works offline and can be installed as an app.</li>
+  </ul>
+  <div class="cta">
+    <a class="btn btn-cinnabar btn-pill btn-lg" href="./" data-stat="app_start:ink"><i class="bi bi-box-arrow-up-right"></i> <span data-vi="Mở ứng dụng">Open the app</span></a>
+  </div>
+</main>
+</body>
+</html>

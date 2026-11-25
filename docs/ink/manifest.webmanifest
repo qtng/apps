@@ -1,0 +1,18 @@
+{
+  "id": "./",
+  "name": "Nôm Ink",
+  "short_name": "Nôm Ink",
+  "description": "Write Chữ Nôm by hand: a collection of handwriting, kept on this device",
+  "lang": "en",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1e1a15",
+  "theme_color": "#2d2720",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Nôm Ink</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#2d2720">
+  <meta name="description" content="Write Chữ Nôm by hand: a collection of handwriting, kept on this device.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/app.css">
+  <script src="js/lang.js"></script>
+  <script src="https://qatt.org/js/fonts.js"></script>
+  <script src="js/shape.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/app.js" defer></script>
+</head>
+<body data-mode="calm">
+  <header class="bar">
+    <h1 class="title">Nôm Ink</h1>
+    <span class="stats" id="stats"></span>
+    <span class="seg" id="mode" role="group" aria-label="Mode" data-vi-aria-label="Chế độ">
+      <button type="button" data-mode="calm"><span data-vi="Thong thả">Calm</span></button><button type="button" data-mode="game"><span data-vi="Trò chơi">Game</span></button>
+    </span>
+    <span class="seg lang" id="lang" role="group" aria-label="Language" data-vi-aria-label="Ngôn ngữ"><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="vi" lang="vi">VI</button></span>
+    <button type="button" class="icon" id="menu-btn" aria-label="Menu" data-vi-aria-label="Menu" aria-haspopup="true" aria-expanded="false">⋮</button>
+    <div class="menu" id="menu" hidden>
+      <button type="button" id="export"><span data-vi="Xuất các mẫu (JSON)">Export the samples (JSON)</span></button>
+      <a href="about"><span data-vi="Giới thiệu">About</span></a>
+    </div>
+  </header>
+
+  <section class="prompt" id="prompt">
+    <div class="thumbs" id="thumbs" aria-label="Your earlier samples" data-vi-aria-label="Các mẫu trước của bạn"></div>
+    <div class="ask">
+      <div class="glyph-well" id="well"><span class="glyph" id="glyph" lang="zh-Hant"></span></div>
+      <div class="reading" id="reading"></div>
+      <div class="chip" id="chip"></div>
+      <div class="game-line" id="game-line"></div>
+    </div>
+    <div class="light" id="light" aria-label="Traffic light" data-vi-aria-label="Đèn tín hiệu"><i class="red"></i><i class="yellow"></i><i class="green"></i></div>
+    <div class="timer" id="timer"><i></i></div>
+  </section>
+
+  <section class="stage" id="stage">
+    <span class="beside" id="beside" lang="zh-Hant" hidden></span>
+    <div class="field" id="field"><canvas id="canvas"></canvas></div>
+  </section>
+
+  <footer class="tools">
+    <button type="button" class="tool" id="undo"><span data-vi="Xoá nét">Undo</span></button>
+    <button type="button" class="tool" id="clear"><span data-vi="Xoá hết">Clear</span></button>
+    <button type="button" class="tool calm-only" id="skip"><span data-vi="Bỏ qua">Skip</span></button>
+    <button type="button" class="tool main" id="next"><span data-vi="Tiếp">Next</span></button>
+  </footer>
+
+  <div class="toast" id="toast" hidden><span id="toast-text"></span><button type="button" id="toast-undo"><span data-vi="Hoàn tác">Undo</span></button></div>
+
+  <div class="overlay" id="overlay" hidden>
+    <div class="card" id="card"></div>
+  </div>
+</body>
+</html>
