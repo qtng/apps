@@ -1,11 +1,9 @@
 /* Nôm Ink: one screen, the question above, the field below (its place and size change with every character) */
+/* always dark: calm for the eyes, the strokes stand out */
 :root {
-  --paper: #f4efe5; --panel: #ebe3d4; --ink: #2b2520; --muted: #7a6e60; --line: #cbbfac; --field: #fffdf8; --accent: #a8362a; --accent-ink: #fff;
-  --red: #c92a2a; --yellow: #e8a317; --green: #2b8a3e; --off: color-mix(in srgb, var(--ink) 12%, transparent);
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root { --paper: #1e1a15; --panel: #2d2720; --ink: #ece4d6; --muted: #a59a8a; --line: #4a4136; --field: #26211b; --accent: #e0674f; --accent-ink: #1e1a15; color-scheme: dark; }
+  --paper: #1b1814; --panel: #26221c; --ink: #ece4d6; --muted: #a29785; --line: #4a4136; --field: #211d18; --grid: #5a4f42; --accent: #e0674f; --accent-ink: #1b1814;
+  --red: #e5484d; --yellow: #f0b429; --green: #3fb950; --off: color-mix(in srgb, var(--ink) 12%, transparent);
+  color-scheme: dark;
 }
 * { box-sizing: border-box }
 html, body { height: 100%; margin: 0 }
@@ -33,13 +31,14 @@ button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulat
 @media (max-width: 420px) { .lang { display: none } }
 
 /* the question */
-.prompt { position: relative; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr; gap: .2rem .6rem; padding: .5rem .75rem .6rem; min-height: 9.5rem }
+/* the screen in two halves: the question above, the writing below */
+.prompt { position: relative; flex: 1 1 0; min-height: 0; display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto 1fr; gap: .2rem .6rem; padding: .5rem .75rem .6rem }
 .thumbs { grid-column: 1 / -1; display: flex; gap: .3rem; height: 2.6rem; overflow-x: auto; scrollbar-width: none }
 .thumbs canvas { flex: none; width: 2.6rem; height: 2.6rem; background: var(--field); border: 1px solid var(--line); border-radius: .35rem }
 .thumbs .none { color: var(--muted); font-size: .8rem; align-self: center }
 .ask { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 0 }
-.glyph-well { position: relative; height: 4.6rem; width: 100%; display: flex; justify-content: center }
-.glyph { font-family: "Pen", serif; font-size: 4rem; line-height: 4.6rem; color: var(--ink) }
+.glyph-well { position: relative; height: 5.6rem; width: 100%; display: flex; justify-content: center }
+.glyph { font-family: "Pen", serif; font-size: 5rem; line-height: 5.6rem; color: var(--ink) }
 .reading { font-size: 1.05rem; color: var(--muted); margin-top: -.15rem }
 .chip { margin-top: .25rem; padding: .1rem .7rem; border-radius: 2rem; background: var(--ink); color: var(--paper); font-size: .8rem; font-weight: 600 }
 .chip:empty { display: none }
@@ -60,8 +59,17 @@ body[data-mode="game"] .calm-only, body[data-mode="game"] .thumbs { visibility: 
 body[data-mode="calm"] .timer { display: none }
 
 /* the stage: the field somewhere in it */
-.stage { position: relative; flex: 1; min-height: 0; margin: 0 .5rem; border-top: 1px dashed var(--line) }
-.field { position: absolute; background: var(--field); border: 2px dashed var(--line); border-radius: .6rem; pointer-events: none; will-change: transform }
+.stage { position: relative; flex: 1 1 0; min-height: 0; background: var(--field); border-top: 1px solid var(--line) }
+/* the square suggested, as a sheet for practising characters: the square, its cross and its diagonals */
+.field { position: absolute; pointer-events: none; color: var(--grid) }
+.field svg { display: block; width: 100%; height: 100%; overflow: visible }
+.field .edge { fill: none; stroke: currentColor; stroke-width: 1.5; vector-effect: non-scaling-stroke }
+.field .cross, .field .diag { fill: none; stroke: currentColor; stroke-width: 1; stroke-dasharray: 5 5; vector-effect: non-scaling-stroke }
+.field .diag { opacity: .6 }
+/* the time left until the next character, from lifting the pen */
+.auto { position: absolute; left: 0; right: 0; top: 0; height: .3rem; z-index: 3; pointer-events: none }
+.auto[hidden] { display: none }
+.auto i { display: block; height: 100%; width: 100%; margin: 0 auto; background: var(--green) }
 /* the ink: one canvas over the whole stage, which does not move (the field drifts below it; the strokes stay where they were written) */
 .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; z-index: 2 }
 .field.shake { animation: shake .3s }

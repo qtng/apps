@@ -2,22 +2,24 @@
 Nôm Ink: a collection of handwriting of Chữ Nôm, kept on this device (js/db.js), exported as JSON (the menu).
 
 A character of chars.json (the characters of dict.csv of chunom.org, built by features/ink/tools/build_chars.py of the private repository) is shown with
-its reading; it is written in the field below. The field has another place and size for every character (about square, 55–90 % of the shorter side of
-the stage, left, middle or right, higher or lower; sometimes beside a character already written) and drifts slowly while it is written (DRIFT), so that
-the hand is held a little differently every time (squeezed shapes are not asked for: they can be made from any sample later). Every character is written once, then the next; the characters with the fewest
+its reading in the upper half of the screen; it is written in the lower half, anywhere: the square drawn there (a practice grid: a square with its cross
+and diagonals) is only a suggestion. It has another place and size for every character (55–90 % of the shorter side of the stage, left, middle or right,
+higher or lower; beside a character already written where there is room), so that the hand is held a little differently every time (squeezed shapes are
+not asked for: they can be made from any sample later). Nothing moves (a dark screen, calm for the eyes). Every character is written once, then the next; the characters with the fewest
 samples come first, never one of the last RECENT again. Above, the earlier samples of the character (small pictures). The traffic light (js/shape.js)
 tells whether enough is written that looks like the character.
 
-Calm: a prompt of the tempo (PROMPTS), Next keeps the sample (Undo in the message for a moment), Skip goes on without it.
+Calm: a prompt of the tempo (PROMPTS). When the light is green and the pen is lifted, a bar runs down (AUTO_MS, a little slower than Gboard); then the
+sample is kept and the next character comes (Undo in the message for a moment); a new stroke stops it. Next does the same at once, Skip goes on without it.
 Game: the character falls in its well; it must be written before it lands (the time from its strokes, shorter with every level). When the light is green
 and the pen rests for a moment, it is taken; time up without green: game over (that sample is kept as 'timeout'). From EVAL_LEVEL on the samples
 are kept with eval: false (only the game: too fast to be handwriting worth learning from).
 
-A sample (v 2): { v, c, mode, prompt, level, limitMs, status: 'ok' | 'timeout', eval, layout: { kind, x, y, w, h, stageW, stageH, beside, drift, at },
+A sample (v 2): { v, c, mode, prompt, level, limitMs, status: 'ok' | 'timeout', eval, layout: { kind, x, y, w, h, stageW, stageH, beside },
 strokes: [[[x, y, t, p], …], …] (x, y in CSS pixels of the stage, which does not move: the shape is exactly as written; t ms from the first touch of the
 character, p the pressure 0..1 or null), pointer ('touch' | 'pen' | 'mouse'), device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept),
-created (ISO time) }. layout.x, y: the place of the field without its drift; drift: { ax, ay, px, py } (amplitude in px, period in ms of the sines);
-at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the points in pixels of the field and fields of every shape.
+created (ISO time) }. layout.x, y, w, h: the square suggested. Samples of the first evening also have layout.drift and .at (the field drifted then);
+version 1 (the first day) had the points in pixels of the field and fields of every shape.
 */
 (() => {
   'use strict';
@@ -41,7 +43,7 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
 
   // the places of the field: about square anywhere in the stage, or beside a character already written
   const LAYOUTS = [{ kind: 'square', w: 4 }, { kind: 'beside', w: 1 }];
-  const DRIFT = 0.05;   // the field drifts up to this share of the shorter side of the stage, slowly (none with reduced motion)
+  const AUTO_MS = 1500;   // calm: from lifting the pen (light green) to the next character
 
   const pick = list => { let sum = 0; for (const x of list) sum += x.w; let r = Math.random() * sum; for (const x of list) { if ((r -= x.w) < 0) return x; } return list[list.length - 1]; };
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -74,7 +76,6 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
     canvas.addEventListener('pointermove', move);
     canvas.addEventListener('pointerup', up);
     canvas.addEventListener('pointercancel', up);
-    driftLoop();
     addEventListener('resize', () => { if (cur) placeField(cur.layout, true); });
     document.addEventListener('visibilitychange', () => { if (document.hidden && game && !game.over && !game.paused) pause(); });
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -138,40 +139,37 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
 
   // the field in the stage: its place and size for this character
   function layoutFor(kind) {
-    const W = stage.clientWidth, H = stage.clientHeight, m = 8, S = Math.min(W, H);
-    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const amp = still ? 0 : S * DRIFT;
-    const drift = { ax: Math.round(amp * rand(.5, 1)), ay: Math.round(amp * rand(.5, 1)), px: Math.round(rand(5000, 9000)), py: Math.round(rand(6000, 11000)) };
-    const room = (side, size, a) => m + a + Math.random() * Math.max(0, side - 2 * m - 2 * a - size);
-    let w, h, x, y, beside = null;
+    const W = stage.clientWidth, H = stage.clientHeight, m = 10, S = Math.min(W, H);
+    const room = (side, size) => m + Math.random() * Math.max(0, side - 2 * m - size);
+    let w, x, y, beside = null;
     if (kind === 'beside') {
-      // a character already written on the left (in Pen, grey), the field right of it, about as big
-      w = h = Math.min(S * rand(.55, .75), W / 2 - 2 * m - drift.ax);
-      x = W / 2 + Math.random() * Math.max(0, W / 2 - w - m - drift.ax);
-      y = room(H, h, drift.ay);
+      // a character already written on the left (in Pen, grey), the square right of it, about as big
+      w = Math.min(S * rand(.55, .8), W / 2 - 2 * m);
+      x = W / 2 + Math.random() * Math.max(0, W / 2 - w - m);
+      y = room(H, w);
       beside = { c: chars[Math.floor(Math.random() * chars.length)].c, x: x - w * 1.08, y, size: w * .9 };
     } else {
-      const side = S * rand(.55, .9), a = rand(.85, 1.15);
-      w = Math.min(side * Math.sqrt(a), W - 2 * m - 2 * drift.ax); h = Math.min(side / Math.sqrt(a), H - 2 * m - 2 * drift.ay);
-      x = room(W, w, drift.ax); y = room(H, h, drift.ay);
+      w = Math.min(S * rand(.55, .9), W - 2 * m, H - 2 * m);
+      x = room(W, w); y = room(H, w);
     }
     const r = v => Math.round(v);
-    return { kind, x: r(x), y: r(y), w: r(w), h: r(h), stageW: r(W), stageH: r(H), beside: beside && beside.c, drift, _beside: beside, _start: performance.now(), _phase: [rand(0, 6.28), rand(0, 6.28)] };
+    return { kind, x: r(x), y: r(y), w: r(w), h: r(w), stageW: r(W), stageH: r(H), beside: beside && beside.c, _beside: beside };
   }
 
-  // the drift of the field now: [dx, dy]
-  function driftNow(l, now = performance.now()) {
-    const t = now - l._start, d = l.drift;
-    return [Math.round(d.ax * Math.sin(2 * Math.PI * t / d.px + l._phase[0])), Math.round(d.ay * Math.sin(2 * Math.PI * t / d.py + l._phase[1]))];
+  // the bar of the time left until the next character (calm: AUTO_MS after the pen was lifted with the light green; the game: its rest)
+  let autoTimer = 0;
+  function autoStart(ms, then) {
+    autoStop();
+    const bar = $('auto').firstElementChild;
+    $('auto').hidden = false;                         // shown first: a hidden bar has no width to start the animation from
+    bar.style.transition = 'none'; bar.style.width = '100%';
+    void bar.offsetWidth;
+    bar.style.transition = `width ${ms}ms linear`; bar.style.width = '0%';
+    autoTimer = setTimeout(() => { autoStop(); if (!drawing) then(); }, ms);
   }
-  let driftFrame = 0;
-  function driftLoop() {
-    cancelAnimationFrame(driftFrame);
-    const tick = now => {
-      if (cur && cur.layout) { const [dx, dy] = driftNow(cur.layout, now); field.style.transform = `translate(${dx}px, ${dy}px)`; }
-      driftFrame = requestAnimationFrame(tick);
-    };
-    driftFrame = requestAnimationFrame(tick);
+  function autoStop() {
+    clearTimeout(autoTimer); autoTimer = 0;
+    $('auto').hidden = true;
   }
 
   function placeField(l, resized) {
@@ -202,11 +200,11 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
     if (e.button > 0) return;
     e.preventDefault();
     canvas.setPointerCapture(e.pointerId);
-    if (!cur.strokes.length) { cur.t0 = e.timeStamp; cur.layout.at = driftNow(cur.layout); }
+    if (!cur.strokes.length) cur.t0 = e.timeStamp;
     cur.pointer = e.pointerType;
     drawing = { id: e.pointerId, pts: [point(e)] };
     cur.strokes.push(drawing.pts);
-    if (game) clearTimeout(game.idle);
+    autoStop();
     hideToast();
     redraw();
   }
@@ -223,10 +221,7 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
     drawing = null;
     judge();
     redraw();
-    if (game && cur.light && cur.light.light === 'green') {
-      clearTimeout(game.idle);
-      game.idle = setTimeout(() => { if (!drawing) accept('ok'); }, idleMs());
-    }
+    if (cur.light && cur.light.light === 'green') autoStart(game ? idleMs() : AUTO_MS, () => (game ? accept('ok') : onNext()));
   }
 
   function judge() {
@@ -256,7 +251,7 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
     if (!cur || !cur.strokes.length || drawing) return;
     cur.strokes.pop();
     judge(); redraw();
-    if (game) clearTimeout(game.idle);
+    autoStop();
   }
 
   function clearField() {
@@ -264,7 +259,7 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
     cur.strokes = []; drawing = null;
     $('light').dataset.on = '';
     $('next').disabled = true;
-    if (game) clearTimeout(game.idle);
+    autoStop();
     redraw();
   }
 
@@ -279,7 +274,7 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
     const sample = {
       v: 2, c: cur.item.c, mode, prompt: cur.prompt ? cur.prompt.id : null, level: game ? game.level : null, limitMs: game ? Math.round(game.limit) : null,
       status, eval: !game || game.level < EVAL_LEVEL,
-      layout: { kind: l.kind, x: l.x, y: l.y, w: l.w, h: l.h, stageW: l.stageW, stageH: l.stageH, beside: l.beside || null, drift: l.drift, at: l.at || [0, 0] },
+      layout: { kind: l.kind, x: l.x, y: l.y, w: l.w, h: l.h, stageW: l.stageW, stageH: l.stageH, beside: l.beside || null },
       strokes: cur.strokes, pointer: cur.pointer, device: device(), light: cur.light, created: new Date().toISOString(),
     };
     let id = null;
@@ -289,6 +284,7 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
   }
 
   async function onNext() {
+    autoStop();
     if (!cur || !cur.strokes.length) return;
     if (game) { if (cur.light && cur.light.light === 'green') accept('ok'); else { field.classList.remove('shake'); void field.offsetWidth; field.classList.add('shake'); } return; }
     const kept = await keep('ok');
@@ -404,7 +400,7 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
 
   function stopGame() {
     if (!game) return;
-    cancelAnimationFrame(game.raf); clearTimeout(game.idle);
+    cancelAnimationFrame(game.raf); autoStop();
     game = null;
     $('glyph').style.removeProperty('--fall');
     $('timer').firstElementChild.style.width = '0';
@@ -434,7 +430,7 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
 
   async function accept(status) {
     if (!game || game.over || !cur.strokes.length) return;
-    cancelAnimationFrame(game.raf); clearTimeout(game.idle);
+    cancelAnimationFrame(game.raf); autoStop();
     const kept = await keep(status);
     if (kept) game.last.push(kept.sample.strokes);
     if (game.last.length > 8) game.last.shift();
@@ -447,7 +443,7 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
   async function timeUp() {
     if (cur.light && cur.light.light === 'green') { accept('ok'); return; }
     game.over = true;
-    clearTimeout(game.idle);
+    autoStop();
     if (cur.strokes.length) await keep('timeout');
     const best = Math.max(+(localStorage.getItem(BEST) || 0), game.score);
     try { localStorage.setItem(BEST, String(best)); } catch (e) { /* no storage */ }
@@ -463,7 +459,7 @@ at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the poi
 
   function pause() {
     game.paused = true; game.pausedAt = performance.now();
-    clearTimeout(game.idle);
+    autoStop();
     card(`<h2>${T('Paused', 'Tạm dừng')}</h2><div class="row"><button type="button" class="main" id="resume">${T('Continue', 'Tiếp tục')}</button></div>`);
     $('resume').onclick = () => { closeCard(); game.pausedFor += performance.now() - game.pausedAt; game.paused = false; };
   }
