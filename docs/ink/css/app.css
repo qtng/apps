@@ -40,8 +40,6 @@ button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulat
 .glyph-well { position: relative; height: 5.6rem; width: 100%; display: flex; justify-content: center }
 .glyph { font-family: "Pen", serif; font-size: 5rem; line-height: 5.6rem; color: var(--ink) }
 .reading { font-size: 1.05rem; color: var(--muted); margin-top: -.15rem }
-.chip { margin-top: .25rem; padding: .1rem .7rem; border-radius: 2rem; background: var(--ink); color: var(--paper); font-size: .8rem; font-weight: 600 }
-.chip:empty { display: none }
 .game-line { font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums }
 .game-line:empty { display: none }
 .light { grid-column: 2; grid-row: 2; justify-self: end; display: flex; flex-direction: column; justify-content: center; gap: .3rem; padding: .3rem; border-radius: 2rem; background: var(--panel); align-self: center }

@@ -9,13 +9,13 @@ not asked for: they can be made from any sample later). Nothing moves (a dark sc
 samples come first, never one of the last RECENT again. Above, the earlier samples of the character (small pictures). The traffic light (js/shape.js)
 tells whether enough is written that looks like the character.
 
-Calm: a prompt of the tempo (PROMPTS). When the light is green and the pen is lifted, a bar runs down (AUTO_MS, a little slower than Gboard); then the
+Calm: no prompt of the tempo (there were some on the first day; nobody reads them while writing: the tempo is measured). When the light is green and the pen is lifted, a bar runs down (AUTO_MS, a little slower than Gboard); then the
 sample is kept and the next character comes (Undo in the message for a moment); a new stroke stops it. Next does the same at once, Skip goes on without it.
 Game: the character falls in its well; it must be written before it lands (the time from its strokes, shorter with every level). When the light is green
 and the pen rests for a moment, it is taken; time up without green: game over (that sample is kept as 'timeout'). From EVAL_LEVEL on the samples
 are kept with eval: false (only the game: too fast to be handwriting worth learning from).
 
-A sample (v 2): { v, c, mode, prompt, level, limitMs, status: 'ok' | 'timeout', eval, layout: { kind, x, y, w, h, stageW, stageH, beside },
+A sample (v 2): { v, c, mode, prompt (null; 'normal' | 'quick' | 'flowing' | 'slow' in the samples of the first day), level, limitMs, status: 'ok' | 'timeout', eval, layout: { kind, x, y, w, h, stageW, stageH, beside },
 strokes: [[[x, y, t, p], …], …] (x, y in CSS pixels of the stage, which does not move: the shape is exactly as written; t ms from the first touch of the
 character, p the pressure 0..1 or null), pointer ('touch' | 'pen' | 'mouse'), device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept),
 created (ISO time) }. layout.x, y, w, h: the square suggested. Samples of the first evening also have layout.drift and .at (the field drifted then);
@@ -33,14 +33,6 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   const PER_LEVEL = 5;         // characters per level of the game
   const BEST = 'nomInkBest';   // localStorage: the best score of the game
 
-  // the prompts of the calm mode (weights)
-  const PROMPTS = [
-    { id: 'normal', w: 40, en: 'Normal', vi: 'Bình thường' },
-    { id: 'quick', w: 25, en: 'Quick', vi: 'Nhanh' },
-    { id: 'flowing', w: 25, en: 'Flowing: strokes may join', vi: 'Liền nét: nét được nối' },
-    { id: 'slow', w: 10, en: 'Slow and exact', vi: 'Chậm và chính xác' },
-  ];
-
   // the places of the field: about square anywhere in the stage, or beside a character already written
   const LAYOUTS = [{ kind: 'square', w: 4 }, { kind: 'beside', w: 1 }];
   const AUTO_MS = 1500;   // calm: from lifting the pen (light green) to the next character
@@ -50,7 +42,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
 
   let chars = [], counts = new Map(), recent = [], total = 0;
   let mode = 'calm';
-  let cur = null;        // { item, template, prompt, layout, strokes, t0, pointer, light }
+  let cur = null;        // { item, template, layout, strokes, t0, pointer, light }
   let drawing = null;    // the stroke being written
   let game = null;       // { level, score, n, start, limit, raf, idle, over, last: [] }
 
@@ -123,11 +115,9 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   function next() {
     const item = choose();
     const template = InkShape.template(item.t);
-    cur = { item, template, prompt: mode === 'calm' ? pick(PROMPTS) : null, layout: null, strokes: [], t0: 0, pointer: null, light: null };
+    cur = { item, template, layout: null, strokes: [], t0: 0, pointer: null, light: null };
     $('glyph').textContent = item.c;
     $('reading').textContent = item.r;
-    const chip = $('chip');
-    if (cur.prompt) say(chip, cur.prompt.en, cur.prompt.vi); else { chip.removeAttribute('data-vi'); chip.removeAttribute('data-en'); chip.textContent = ''; }
     // beside a character only where the field can still be big (not on a phone held upright: half its width is too small)
     const roomy = stage.clientWidth / 2 >= Math.min(stage.clientWidth, stage.clientHeight) * .55;
     cur.layout = layoutFor(pick(LAYOUTS.filter(l => roomy || l.kind !== 'beside')).kind);
@@ -272,7 +262,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   async function keep(status) {
     const l = cur.layout;
     const sample = {
-      v: 2, c: cur.item.c, mode, prompt: cur.prompt ? cur.prompt.id : null, level: game ? game.level : null, limitMs: game ? Math.round(game.limit) : null,
+      v: 2, c: cur.item.c, mode, prompt: null, level: game ? game.level : null, limitMs: game ? Math.round(game.limit) : null,
       status, eval: !game || game.level < EVAL_LEVEL,
       layout: { kind: l.kind, x: l.x, y: l.y, w: l.w, h: l.h, stageW: l.stageW, stageH: l.stageH, beside: l.beside || null },
       strokes: cur.strokes, pointer: cur.pointer, device: device(), light: cur.light, created: new Date().toISOString(),
@@ -370,7 +360,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     document.body.dataset.mode = m;
     stopGame();
     marks();
-    if (m === 'game') { const chip = $('chip'); chip.removeAttribute('data-vi'); chip.removeAttribute('data-en'); chip.textContent = ''; startScreen(); }
+    if (m === 'game') startScreen();
     else { $('game-line').textContent = ''; next(); }
   }
 
