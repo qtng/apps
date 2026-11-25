@@ -7,12 +7,14 @@ extent (the longer side fills it, the shorter one centred), the box is cut into 
   InkShape.template(base64)          the strokes of a character of chars.json (each 8 points, 0..255 in the box 200 × 200 of GlyphWiki) → [[x, y, …], …]
   InkShape.judge(written, template)  written: [[x, y, x, y, …], …] (any unit, y down) → { ink, sim, light: 'red' | 'yellow' | 'green' }
       ink: the length of the lines written / that of the character (both in the box), sim: the similarity of the shapes (0..1)
-      green: ink ≥ GREEN_INK and sim ≥ GREEN_SIM (measured on 25 samples of the owner: finished characters had ink 0.64–1.02 and sim 0.49–0.73,
-      half written ones mostly ink ≈ 0.5, sim ≈ 0.4); yellow: ink ≥ YELLOW_INK; without a template only the amount of ink counts
+      green: ink ≥ GREEN_INK and sim ≥ GREEN_SIM; yellow: ink ≥ YELLOW_INK; without a template only the amount of ink counts.
+      Measured: 25 careful samples of the owner (finished ink 0.64–1.02, sim 0.49–0.73; the first half of their strokes ink mostly ≈ 0.5, at most 0.80
+      with sim 0.37), then 108 samples of natural writing (strokes joined: sim often 0.33–0.5 although finished, ink 0.74–1.3). With 0.7 / 0.4 95 of
+      the 104 natural ones are green (0.6 / 0.5 before: 79) and none of the half written ones
 */
 window.InkShape = (() => {
   const ZONES = 10, FINE = 40, CELL = 256 / FINE, DIM = ZONES * ZONES * 4, BLUR = 1.0, SPACING = 12;
-  const GREEN_INK = 0.6, GREEN_SIM = 0.5, YELLOW_INK = 0.35;
+  const GREEN_INK = 0.7, GREEN_SIM = 0.4, YELLOW_INK = 0.35;
 
   function template(b64) {
     if (!b64) return null;
