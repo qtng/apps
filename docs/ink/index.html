@@ -5,7 +5,7 @@
   <title>Nôm Ink</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#2d2720">
+  <meta name="theme-color" content="#1b1814">
   <meta name="description" content="Write Chữ Nôm by hand: a collection of handwriting, kept on this device.">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -46,7 +46,8 @@
 
   <section class="stage" id="stage">
     <span class="beside" id="beside" lang="zh-Hant" hidden></span>
-    <div class="field" id="field"></div>
+    <div class="auto" id="auto" hidden><i></i></div>
+    <div class="field" id="field"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="1" y="1" width="98" height="98" rx="2" class="edge"/><path d="M50 1V99M1 50H99" class="cross"/><path d="M1 1L99 99M99 1L1 99" class="diag"/></svg></div>
     <canvas id="canvas"></canvas>
   </section>
 
