@@ -61,8 +61,9 @@ body[data-mode="calm"] .timer { display: none }
 
 /* the stage: the field somewhere in it */
 .stage { position: relative; flex: 1; min-height: 0; margin: 0 .5rem; border-top: 1px dashed var(--line) }
-.field { position: absolute; background: var(--field); border: 2px dashed var(--line); border-radius: .6rem; touch-action: none; transition: none }
-.field canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; border-radius: .5rem }
+.field { position: absolute; background: var(--field); border: 2px dashed var(--line); border-radius: .6rem; pointer-events: none; will-change: transform }
+/* the ink: one canvas over the whole stage, which does not move (the field drifts below it; the strokes stay where they were written) */
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; z-index: 2 }
 .field.shake { animation: shake .3s }
 @keyframes shake { 25% { transform: translateX(-6px) } 75% { transform: translateX(6px) } }
 .beside { position: absolute; font-family: "Pen", serif; color: color-mix(in srgb, var(--ink) 35%, transparent); line-height: 1; pointer-events: none }

@@ -2,8 +2,9 @@
 Nôm Ink: a collection of handwriting of Chữ Nôm, kept on this device (js/db.js), exported as JSON (the menu).
 
 A character of chars.json (the characters of dict.csv of chunom.org, built by features/ink/tools/build_chars.py of the private repository) is shown with
-its reading; it is written in the field below. The field has another place and size for every character (LAYOUTS: square, wide, narrow, a band, a corner,
-beside a character already written), so that the writing varies. Every character is written once, then the next; the characters with the fewest
+its reading; it is written in the field below. The field has another place and size for every character (about square, 55–90 % of the shorter side of
+the stage, left, middle or right, higher or lower; sometimes beside a character already written) and drifts slowly while it is written (DRIFT), so that
+the hand is held a little differently every time (squeezed shapes are not asked for: they can be made from any sample later). Every character is written once, then the next; the characters with the fewest
 samples come first, never one of the last RECENT again. Above, the earlier samples of the character (small pictures). The traffic light (js/shape.js)
 tells whether enough is written that looks like the character.
 
@@ -12,9 +13,11 @@ Game: the character falls in its well; it must be written before it lands (the t
 and the pen rests for a moment, it is taken; time up without green: game over (that sample is kept as 'timeout'). From EVAL_LEVEL on the samples
 are kept with eval: false (only the game: too fast to be handwriting worth learning from).
 
-A sample: { c, mode, prompt, level, limitMs, status: 'ok' | 'timeout', eval, layout: { kind, x, y, w, h, stageW, stageH }, strokes: [[[x, y, t, p], …], …]
-(x, y in CSS pixels of the field, t ms from the first touch of the character, p the pressure 0..1 or null), pointer ('touch' | 'pen' | 'mouse'),
-device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept), created (ISO time) }.
+A sample (v 2): { v, c, mode, prompt, level, limitMs, status: 'ok' | 'timeout', eval, layout: { kind, x, y, w, h, stageW, stageH, beside, drift, at },
+strokes: [[[x, y, t, p], …], …] (x, y in CSS pixels of the stage, which does not move: the shape is exactly as written; t ms from the first touch of the
+character, p the pressure 0..1 or null), pointer ('touch' | 'pen' | 'mouse'), device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept),
+created (ISO time) }. layout.x, y: the place of the field without its drift; drift: { ax, ay, px, py } (amplitude in px, period in ms of the sines);
+at: [dx, dy] the drift at the first touch. Version 1 (the first day) had the points in pixels of the field and fields of every shape.
 */
 (() => {
   'use strict';
@@ -36,11 +39,9 @@ device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept), crea
     { id: 'slow', w: 10, en: 'Slow and exact', vi: 'Chậm và chính xác' },
   ];
 
-  // the places of the field in the stage (fractions of its width and height; s: of the shorter side, a square)
-  const LAYOUTS = [
-    { kind: 'square', w: 3 }, { kind: 'square-small', w: 2 }, { kind: 'full', w: 2 }, { kind: 'left', w: 1 }, { kind: 'right', w: 1 },
-    { kind: 'top', w: 1 }, { kind: 'bottom', w: 1 }, { kind: 'tall', w: 1.5 }, { kind: 'wide', w: 1.5 }, { kind: 'corner', w: 1 }, { kind: 'beside', w: 1.5 },
-  ];
+  // the places of the field: about square anywhere in the stage, or beside a character already written
+  const LAYOUTS = [{ kind: 'square', w: 4 }, { kind: 'beside', w: 1 }];
+  const DRIFT = 0.05;   // the field drifts up to this share of the shorter side of the stage, slowly (none with reduced motion)
 
   const pick = list => { let sum = 0; for (const x of list) sum += x.w; let r = Math.random() * sum; for (const x of list) { if ((r -= x.w) < 0) return x; } return list[list.length - 1]; };
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -69,10 +70,11 @@ device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept), crea
     $('skip').addEventListener('click', () => { hideToast(); next(); });
     $('next').addEventListener('click', onNext);
     $('toast-undo').addEventListener('click', undoSaved);
-    field.addEventListener('pointerdown', down);
-    field.addEventListener('pointermove', move);
-    field.addEventListener('pointerup', up);
-    field.addEventListener('pointercancel', up);
+    canvas.addEventListener('pointerdown', down);
+    canvas.addEventListener('pointermove', move);
+    canvas.addEventListener('pointerup', up);
+    canvas.addEventListener('pointercancel', up);
+    driftLoop();
     addEventListener('resize', () => { if (cur) placeField(cur.layout, true); });
     document.addEventListener('visibilitychange', () => { if (document.hidden && game && !game.over && !game.paused) pause(); });
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -125,7 +127,9 @@ device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept), crea
     $('reading').textContent = item.r;
     const chip = $('chip');
     if (cur.prompt) say(chip, cur.prompt.en, cur.prompt.vi); else { chip.removeAttribute('data-vi'); chip.removeAttribute('data-en'); chip.textContent = ''; }
-    cur.layout = layoutFor(pick(LAYOUTS).kind);
+    // beside a character only where the field can still be big (not on a phone held upright: half its width is too small)
+    const roomy = stage.clientWidth / 2 >= Math.min(stage.clientWidth, stage.clientHeight) * .55;
+    cur.layout = layoutFor(pick(LAYOUTS.filter(l => roomy || l.kind !== 'beside')).kind);
     placeField(cur.layout);
     clearField();
     if (mode === 'calm') thumbs(item.c);
@@ -134,38 +138,44 @@ device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept), crea
 
   // the field in the stage: its place and size for this character
   function layoutFor(kind) {
-    const W = stage.clientWidth, H = stage.clientHeight, m = 6, S = Math.min(W, H);
+    const W = stage.clientWidth, H = stage.clientHeight, m = 8, S = Math.min(W, H);
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const amp = still ? 0 : S * DRIFT;
+    const drift = { ax: Math.round(amp * rand(.5, 1)), ay: Math.round(amp * rand(.5, 1)), px: Math.round(rand(5000, 9000)), py: Math.round(rand(6000, 11000)) };
+    const room = (side, size, a) => m + a + Math.random() * Math.max(0, side - 2 * m - 2 * a - size);
     let w, h, x, y, beside = null;
-    switch (kind) {
-      case 'square': w = h = S * rand(.6, .92); break;
-      case 'square-small': w = h = S * rand(.32, .5); break;
-      case 'full': w = W - 2 * m; h = H - 2 * m; break;
-      case 'left': w = W * rand(.45, .6); h = H * rand(.6, .95); x = m; break;
-      case 'right': w = W * rand(.45, .6); h = H * rand(.6, .95); x = W - m - w; break;
-      case 'top': w = W * rand(.7, .98); h = H * rand(.35, .5); y = m; break;
-      case 'bottom': w = W * rand(.7, .98); h = H * rand(.35, .5); y = H - m - h; break;
-      case 'tall': w = Math.min(W * rand(.25, .38), H * .5); h = H * rand(.75, .98); break;
-      case 'wide': w = W * rand(.8, .98); h = Math.min(H * rand(.25, .36), W * .5); break;
-      case 'corner': w = h = S * rand(.3, .45); x = Math.random() < .5 ? m : W - m - w; y = Math.random() < .5 ? m : H - m - h; break;
-      case 'beside': {
-        // a character already written on the left (in Pen, grey), the field right of it, about as big
-        w = h = Math.min(S * rand(.42, .6), W / 2 - 2 * m);
-        y = (H - h) / 2 + rand(-.15, .15) * (H - h);
-        x = W / 2 + rand(0, W / 2 - w - m);
-        const other = chars[Math.floor(Math.random() * chars.length)].c;
-        beside = { c: other, x: x - w * 1.08, y, size: w * .9 };
-        break;
-      }
+    if (kind === 'beside') {
+      // a character already written on the left (in Pen, grey), the field right of it, about as big
+      w = h = Math.min(S * rand(.55, .75), W / 2 - 2 * m - drift.ax);
+      x = W / 2 + Math.random() * Math.max(0, W / 2 - w - m - drift.ax);
+      y = room(H, h, drift.ay);
+      beside = { c: chars[Math.floor(Math.random() * chars.length)].c, x: x - w * 1.08, y, size: w * .9 };
+    } else {
+      const side = S * rand(.55, .9), a = rand(.85, 1.15);
+      w = Math.min(side * Math.sqrt(a), W - 2 * m - 2 * drift.ax); h = Math.min(side / Math.sqrt(a), H - 2 * m - 2 * drift.ay);
+      x = room(W, w, drift.ax); y = room(H, h, drift.ay);
     }
-    w = Math.min(w, W - 2 * m); h = Math.min(h, H - 2 * m);
-    if (x == null) x = m + Math.random() * Math.max(0, W - 2 * m - w);
-    if (y == null) y = m + Math.random() * Math.max(0, H - 2 * m - h);
     const r = v => Math.round(v);
-    return { kind, x: r(x), y: r(y), w: r(w), h: r(h), stageW: r(W), stageH: r(H), beside: beside && beside.c, _beside: beside };
+    return { kind, x: r(x), y: r(y), w: r(w), h: r(h), stageW: r(W), stageH: r(H), beside: beside && beside.c, drift, _beside: beside, _start: performance.now(), _phase: [rand(0, 6.28), rand(0, 6.28)] };
+  }
+
+  // the drift of the field now: [dx, dy]
+  function driftNow(l, now = performance.now()) {
+    const t = now - l._start, d = l.drift;
+    return [Math.round(d.ax * Math.sin(2 * Math.PI * t / d.px + l._phase[0])), Math.round(d.ay * Math.sin(2 * Math.PI * t / d.py + l._phase[1]))];
+  }
+  let driftFrame = 0;
+  function driftLoop() {
+    cancelAnimationFrame(driftFrame);
+    const tick = now => {
+      if (cur && cur.layout) { const [dx, dy] = driftNow(cur.layout, now); field.style.transform = `translate(${dx}px, ${dy}px)`; }
+      driftFrame = requestAnimationFrame(tick);
+    };
+    driftFrame = requestAnimationFrame(tick);
   }
 
   function placeField(l, resized) {
-    if (resized) {   // the stage changed its size (rotation): the same kind of place again, the strokes stay (they are in pixels of the field)
+    if (resized) {   // the stage changed its size (rotation): the same kind of place again, the strokes stay (they are in pixels of the stage)
       const kind = l.kind, old = cur.strokes;
       cur.layout = l = layoutFor(kind);
       cur.strokes = old;
@@ -175,15 +185,15 @@ device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept), crea
     if (l._beside) { b.hidden = false; b.textContent = l._beside.c; Object.assign(b.style, { left: l._beside.x + 'px', top: l._beside.y + 'px', fontSize: l._beside.size + 'px' }); }
     else b.hidden = true;
     const dpr = devicePixelRatio || 1;
-    canvas.width = Math.round(l.w * dpr); canvas.height = Math.round(l.h * dpr);
+    canvas.width = Math.round(l.stageW * dpr); canvas.height = Math.round(l.stageH * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     redraw();
   }
 
   // ---------- writing ----------
   function point(e) {
-    const r = field.getBoundingClientRect();
-    return [Math.round((e.clientX - r.left - 2) * 10) / 10, Math.round((e.clientY - r.top - 2) * 10) / 10,
+    const r = canvas.getBoundingClientRect();
+    return [Math.round((e.clientX - r.left) * 10) / 10, Math.round((e.clientY - r.top) * 10) / 10,
       Math.round(e.timeStamp - cur.t0), e.pressure > 0 && e.pointerType !== 'mouse' ? Math.round(e.pressure * 100) / 100 : null];
   }
 
@@ -191,8 +201,8 @@ device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept), crea
     if (!cur || (game && (game.over || game.paused))) return;
     if (e.button > 0) return;
     e.preventDefault();
-    field.setPointerCapture(e.pointerId);
-    if (!cur.strokes.length) cur.t0 = e.timeStamp;
+    canvas.setPointerCapture(e.pointerId);
+    if (!cur.strokes.length) { cur.t0 = e.timeStamp; cur.layout.at = driftNow(cur.layout); }
     cur.pointer = e.pointerType;
     drawing = { id: e.pointerId, pts: [point(e)] };
     cur.strokes.push(drawing.pts);
@@ -229,7 +239,7 @@ device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept), crea
   function redraw() {
     const l = cur && cur.layout;
     if (!l) return;
-    ctx.clearRect(0, 0, l.w, l.h);
+    ctx.clearRect(0, 0, l.stageW, l.stageH);
     ctx.lineCap = 'round'; ctx.lineJoin = 'round';
     ctx.strokeStyle = getComputedStyle(document.body).color;
     ctx.lineWidth = Math.max(3, Math.min(l.w, l.h) / 55);
@@ -267,9 +277,9 @@ device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept), crea
   async function keep(status) {
     const l = cur.layout;
     const sample = {
-      c: cur.item.c, mode, prompt: cur.prompt ? cur.prompt.id : null, level: game ? game.level : null, limitMs: game ? Math.round(game.limit) : null,
+      v: 2, c: cur.item.c, mode, prompt: cur.prompt ? cur.prompt.id : null, level: game ? game.level : null, limitMs: game ? Math.round(game.limit) : null,
       status, eval: !game || game.level < EVAL_LEVEL,
-      layout: { kind: l.kind, x: l.x, y: l.y, w: l.w, h: l.h, stageW: l.stageW, stageH: l.stageH, beside: l.beside || null },
+      layout: { kind: l.kind, x: l.x, y: l.y, w: l.w, h: l.h, stageW: l.stageW, stageH: l.stageH, beside: l.beside || null, drift: l.drift, at: l.at || [0, 0] },
       strokes: cur.strokes, pointer: cur.pointer, device: device(), light: cur.light, created: new Date().toISOString(),
     };
     let id = null;
