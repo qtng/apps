@@ -22,7 +22,7 @@
     <h1 class="title">Nôm Ink</h1>
     <span class="stats" id="stats"></span>
     <span class="seg" id="mode" role="group" aria-label="Mode" data-vi-aria-label="Chế độ">
-      <button type="button" data-mode="calm"><span data-vi="Thong thả">Calm</span></button><button type="button" data-mode="game"><span data-vi="Trò chơi">Game</span></button>
+      <button type="button" data-mode="calm"><span data-vi="Thong thả">Calm</span></button><button type="button" data-mode="game"><span data-vi="Trò chơi">Game</span></button><button type="button" data-mode="parts"><span data-vi="Bộ phận">Parts</span></button>
     </span>
     <span class="seg lang" id="lang" role="group" aria-label="Language" data-vi-aria-label="Ngôn ngữ"><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="vi" lang="vi">VI</button></span>
     <button type="button" class="icon" id="menu-btn" aria-label="Menu" data-vi-aria-label="Menu" aria-haspopup="true" aria-expanded="false">⋮</button>
@@ -48,7 +48,7 @@
 
   <section class="stage" id="stage">
     <div class="auto" id="auto" hidden><i></i></div>
-    <div class="field" id="field"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="1" y="1" width="98" height="98" rx="2" class="edge"/><path d="M50 1V99M1 50H99" class="cross"/><path d="M1 1L99 99M99 1L1 99" class="diag"/></svg></div>
+    <div class="field" id="field"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="1" y="1" width="98" height="98" rx="2" class="edge"/><path d="M50 1V99M1 50H99" class="cross"/><path d="M1 1L99 99M99 1L1 99" class="diag"/></svg><div class="region" id="region" hidden></div></div>
     <canvas id="canvas"></canvas>
   </section>
 

@@ -13,6 +13,12 @@ tells whether enough is written that looks like the character.
 Calm: no prompt of the tempo (there were some on the first day; nobody reads them while writing: the tempo is measured). When the light is green and the pen is lifted, a bar runs down (AUTO_MS, a little slower than Gboard; yellow: YELLOW_MS, longer, in yellow: a
 character of few strokes or written very freely may never turn green); then the
 sample is kept and the next character comes (Undo in the message for a moment); a new stroke stops it. Next does the same at once, Skip goes on without it.
+Parts: one part of a character (parts.json, built by features/ink/tools/build_parts.py: the top level of its IDS, from the stroke order data; an
+enclosure closed after its inside in two parts, 囗① and 囗②, asked for separately; a part of one stroke is that stroke, key 'stroke:<kind>') is
+written alone, in its place: the character is drawn above from its strokes with that part bright, a box in the square shows where the part is (its
+extent in the character). The parts of the characters of the batch, the one with the fewest samples first (GOAL each), in a character of the batch
+that has it (another one each time, if there are several). The light compares with the strokes of the part only. Such a sample has mode 'parts',
+part (its key) and partBox (its extent in the box 200 × 200 of the character); c is the character it was shown in, layout.region the box in pixels of the stage.
 Game: the character falls in its well; it must be written before it lands (the time from its strokes, shorter with every level). When the light is green
 and the pen rests for a moment, it is taken; time up without green: game over (that sample is kept as 'timeout'). From EVAL_LEVEL on the samples
 are kept with eval: false (only the game: too fast to be handwriting worth learning from).
@@ -41,11 +47,13 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   const GOAL = 10;          // samples per character the collection aims at (the thin bar below the title: of the batch)
   const BATCH = 50;         // characters per batch
   const BATCH_KEY = 'nomInkBatch';
+  const MODE_KEY = 'nomInkMode';   // 'parts' when the app was left in that mode (it opens in it again), else calm
 
   const pick = list => { let sum = 0; for (const x of list) sum += x.w; let r = Math.random() * sum; for (const x of list) { if ((r -= x.w) < 0) return x; } return list[list.length - 1]; };
   const rand = (a, b) => a + Math.random() * (b - a);
 
   let chars = [], counts = new Map(), recent = [], total = 0;
+  let parts = null;      // parts.json: { hosts: { character: { L, parts: [[key, [line, …], box, template], …] } }, keys: { key: label } }
   let mode = 'calm';
   let cur = null;        // { item, template, layout, strokes, t0, pointer, light }
   let drawing = null;    // the stroke being written
@@ -84,7 +92,9 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
     marks();
     stats();
-    next();
+    let start = null;
+    try { start = localStorage.getItem(MODE_KEY); } catch (e) { /* no storage */ }
+    if (start === 'parts') setMode('parts'); else next();
   }
 
   function marks() {
@@ -97,9 +107,11 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     if (!chars.length) return;
     // the batch: how far it is (GOAL samples of each of its characters), in the bar below the title and in the menu
     const done = batchDone(batch), p = pct(done);
+    const pp = mode === 'parts';
     $('stats').textContent = T(`Batch ${batch + 1} · ${p} % · ${total} ${total === 1 ? 'sample' : 'samples'}`, `Bộ ${batch + 1} · ${p} % · ${total} mẫu`);
     $('goal').firstElementChild.style.width = `${p}%`;
-    $('goal').title = T(`Batch ${batch + 1}: ${done[0]} of ${done[1]} (${GOAL} per character)`, `Bộ ${batch + 1}: ${done[0]} / ${done[1]} (${GOAL} mỗi chữ)`);
+    $('goal').title = pp ? T(`Parts of batch ${batch + 1}: ${done[0]} of ${done[1]} (${GOAL} per part)`, `Bộ phận của bộ ${batch + 1}: ${done[0]} / ${done[1]} (${GOAL} mỗi bộ phận)`)
+      : T(`Batch ${batch + 1}: ${done[0]} of ${done[1]} (${GOAL} per character)`, `Bộ ${batch + 1}: ${done[0]} / ${done[1]} (${GOAL} mỗi chữ)`);
     const m = $('batch-btn');
     if (m) { m.setAttribute('data-en', `Batch ${batch + 1} (${p} %)…`); m.setAttribute('data-vi', `Bộ ${batch + 1} (${p} %)…`); m.textContent = T(`Batch ${batch + 1} (${p} %)…`, `Bộ ${batch + 1} (${p} %)…`); }
   }
@@ -113,6 +125,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   // ---------- the next character ----------
   // #c=<character> in the address: that character first (to practise one, or for a test)
   let asked = (() => { try { const m = /(?:^#|&)c=([^&]+)/.exec(location.hash); return m ? decodeURIComponent(m[1]) : null; } catch (e) { return null; } })();
+  let askedPart = (() => { try { const m = /&p=([^&]+)/.exec(location.hash); return m ? decodeURIComponent(m[1]) : null; } catch (e) { return null; } })();
 
   // ---------- the batches ----------
   let batch = 0;
@@ -120,10 +133,30 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   const batchChars = b => chars.slice(b * BATCH, (b + 1) * BATCH);
   // how far a batch is: GOAL samples of each of its characters (more of one do not count) → [got, all]
   function batchDone(b) {
+    if (mode === 'parts') {   // the parts of its characters
+      const keys = batchParts(b);
+      let got = 0;
+      for (const k of keys.keys()) got += Math.min(counts.get('part:' + k) || 0, GOAL);
+      return [got, keys.size * GOAL];
+    }
     const list = batchChars(b);
     let got = 0;
     for (const it of list) got += Math.min(counts.get(it.c) || 0, GOAL);
     return [got, list.length * GOAL];
+  }
+  // the parts of the characters of a batch: Map key → [[character, its part], …]
+  function batchParts(b) {
+    const m = new Map();
+    if (!parts) return m;
+    for (const it of batchChars(b)) {
+      const h = parts.hosts[it.c];
+      if (h) for (const p of h.parts) { if (!m.has(p[0])) m.set(p[0], []); m.get(p[0]).push([it, p]); }
+    }
+    return m;
+  }
+  async function loadParts() {
+    if (parts) return true;
+    try { parts = await (await fetch('parts.json')).json(); return true; } catch (e) { say($('reading'), 'The parts could not be loaded.', 'Không tải được các bộ phận.'); return false; }
   }
   const pct = ([got, all]) => (all ? Math.floor(got * 1000 / all) / 10 : 0);
 
@@ -135,7 +168,9 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
       rows.push(`<button type="button" class="batch${b === batch ? ' on' : ''}" data-b="${b}"><b>${T('Batch', 'Bộ')} ${b + 1}</b><span class="glyphs" lang="zh-Hant">${list.slice(0, 8).map(x => x.c).join('')}</span>` +
         `<span class="pct">${p} %</span><i style="width:${p}%"></i></button>`);
     }
-    card(`<h2>${T('Choose a batch', 'Chọn bộ chữ')}</h2><p>${T(`${BATCH} characters each, the most frequent first; ${GOAL} samples of each character make 100 %.`, `Mỗi bộ ${BATCH} chữ, chữ thường gặp nhất trước; ${GOAL} mẫu mỗi chữ là 100 %.`)}</p>
+    const text = mode === 'parts' ? T(`${BATCH} characters each, the most frequent first; ${GOAL} samples of each of their parts make 100 %.`, `Mỗi bộ ${BATCH} chữ, chữ thường gặp nhất trước; ${GOAL} mẫu mỗi bộ phận của chúng là 100 %.`)
+      : T(`${BATCH} characters each, the most frequent first; ${GOAL} samples of each character make 100 %.`, `Mỗi bộ ${BATCH} chữ, chữ thường gặp nhất trước; ${GOAL} mẫu mỗi chữ là 100 %.`);
+    card(`<h2>${T('Choose a batch', 'Chọn bộ chữ')}</h2><p>${text}</p>
       <div class="batches">${rows.join('')}</div><div class="row"><button type="button" id="batch-close">${T('Close', 'Đóng')}</button></div>`);
     for (const el of document.querySelectorAll('#card .batch')) el.onclick = () => { setBatch(+el.dataset.b); closeCard(); };
     $('batch-close').onclick = () => closeCard();
@@ -144,12 +179,39 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   function setBatch(b) {
     batch = Math.max(0, Math.min(batchCount() - 1, b | 0));
     try { localStorage.setItem(BATCH_KEY, String(batch)); } catch (e) { /* no storage */ }
-    recent = [];
+    recent = []; recentParts = [];
     stats();
     if (!game) next();
   }
 
+  // a part: of the batch, the fewest samples first, not one of the last few; in one of its characters of the batch (not the same as last time)
+  let recentParts = [], lastHost = new Map();
+  function choosePart() {
+    const m = batchParts(batch);
+    if (asked) {   // #c=<character>&p=<key>: that part of that character first (for a test)
+      const h = parts.hosts[asked], k = askedPart; asked = askedPart = null;
+      const p = h && (h.parts.find(x => x[0] === k) || h.parts[0]);
+      if (p) { const it = chars.find(x => parts.hosts[x.c] === h); recentParts.push(p[0]); return { ...it, part: { key: p[0], label: parts.keys[p[0]] || p[0], lines: p[1], box: p[2], t: p[3] }, L: h.L }; }
+    }
+    if (!m.size) return null;
+    const avoid = new Set(recentParts.slice(-Math.max(0, Math.min(RECENT, m.size - 10))));
+    let best = Infinity, pool = [];
+    for (const k of m.keys()) {
+      if (avoid.has(k)) continue;
+      const n = counts.get('part:' + k) || 0;
+      if (n < best) { best = n; pool = [k]; } else if (n === best) pool.push(k);
+    }
+    const key = pool[Math.floor(Math.random() * pool.length)] || m.keys().next().value;
+    recentParts.push(key);
+    if (recentParts.length > RECENT) recentParts.shift();
+    const hosts = m.get(key), others = hosts.filter(h => h[0].c !== lastHost.get(key));
+    const [it, p] = (others.length ? others : hosts)[Math.floor(Math.random() * (others.length || hosts.length))];
+    lastHost.set(key, it.c);
+    return { ...it, part: { key, label: parts.keys[key] || key, lines: p[1], box: p[2], t: p[3] }, L: parts.hosts[it.c].L };
+  }
+
   function choose() {
+    if (mode === 'parts') { const it = choosePart(); if (it) return it; }
     if (asked) { const it = chars.find(x => x.c === asked); asked = null; if (it) { recent.push(it.c); return it; } }
     const list = batchChars(batch);
     const avoid = new Set(recent.slice(-Math.max(0, Math.min(RECENT, list.length - 10))));   // a small batch: fewer kept back
@@ -169,15 +231,31 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   function next() {
     if (reloadSoon && !game) { location.reload(); return; }
     const item = choose();
-    const template = InkShape.template(item.t);
+    const template = InkShape.template(item.part ? item.part.t : item.t);
     cur = { item, template, layout: null, strokes: [], t0: 0, pointer: null, light: null };
-    $('glyph').textContent = item.c;
-    $('reading').textContent = item.r;
+    show(item);
     cur.layout = layoutFor('square');
     placeField(cur.layout);
     clearField();
-    if (mode === 'calm') thumbs(item.c);
+    if (mode !== 'game') thumbs(item);
     if (game) startTimer();
+  }
+
+  // the character asked for: as text, or (a part) drawn from its strokes with the part bright, its name and the character below
+  function show(item) {
+    const g = $('glyph'), r = $('reading');
+    if (!item.part) { g.textContent = item.c; r.textContent = item.r; $('region').hidden = true; return; }
+    const p = item.part, esc = v => v.replace(/[&<>"]/g, ch => `&#${ch.charCodeAt(0)};`);
+    const on = new Set(p.lines), path = mine => item.L.filter((_, k) => on.has(k) === mine).join(' ');
+    g.innerHTML = `<svg viewBox="0 0 200 200" role="img" aria-label="${esc(p.label)} · ${esc(item.c)}"><path class="rest" d="${path(false)}"/><path class="part" d="${path(true)}"/></svg>`;
+    r.innerHTML = `<span class="han" lang="zh-Hant">${esc(p.label)}</span> · <span class="han" lang="zh-Hant">${esc(item.c)}</span> ${esc(item.r)}`;
+  }
+
+  // the box of a part in the square (its extent in the character, a little wider), in pixels of the stage
+  function regionFor(l, box) {
+    const pad = 8, f = l.w / 200;
+    const x0 = Math.max(0, box[0] - pad), y0 = Math.max(0, box[1] - pad), x1 = Math.min(200, box[2] + pad), y1 = Math.min(200, box[3] + pad);
+    return { x: Math.round(l.x + x0 * f), y: Math.round(l.y + y0 * f), w: Math.round((x1 - x0) * f), h: Math.round((y1 - y0) * f) };
   }
 
   // the field in the stage: its place and size for this character
@@ -214,6 +292,12 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
       cur.strokes = old;
     }
     Object.assign(field.style, { left: l.x + 'px', top: l.y + 'px', width: l.w + 'px', height: l.h + 'px' });
+    const part = cur.item.part, reg = $('region');
+    reg.hidden = !part;
+    if (part) {
+      l.region = regionFor(l, part.box);
+      Object.assign(reg.style, { left: (l.region.x - l.x) + 'px', top: (l.region.y - l.y) + 'px', width: l.region.w + 'px', height: l.region.h + 'px' });
+    }
     const dpr = devicePixelRatio || 1;
     canvas.width = Math.round(l.stageW * dpr); canvas.height = Math.round(l.stageH * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -298,6 +382,8 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   }
 
   // ---------- keeping a sample ----------
+  const keyOf = s => (s.part ? 'part:' + s.part : s.c);   // the key of a sample in counts
+
   function device() {
     const touch = matchMedia('(pointer: coarse)').matches, s = Math.min(screen.width, screen.height);
     return { kind: touch ? (s < 600 ? 'phone' : 'tablet') : 'desktop', dpr: devicePixelRatio || 1, w: screen.width, h: screen.height };
@@ -311,9 +397,11 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
       layout: { kind: l.kind, x: l.x, y: l.y, w: l.w, h: l.h, stageW: l.stageW, stageH: l.stageH, beside: null },
       strokes: cur.strokes, pointer: cur.pointer, device: device(), light: cur.light, created: new Date().toISOString(),
     };
+    if (cur.item.part) { sample.part = cur.item.part.key; sample.partBox = cur.item.part.box; sample.layout.region = l.region; }
     let id = null;
     try { id = await InkDB.add(sample); } catch (e) { toast(T('Not saved: ', 'Chưa lưu: ') + e.message); return null; }
-    if (status === 'ok') { counts.set(sample.c, (counts.get(sample.c) || 0) + 1); total++; stats(); }
+    const k = keyOf(sample);
+    if (status === 'ok') { counts.set(k, (counts.get(k) || 0) + 1); total++; stats(); }
     return { id, sample };
   }
 
@@ -322,7 +410,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     if (!cur || !cur.strokes.length) return;
     if (game) { if (auto || (cur.light && cur.light.light === 'green')) accept('ok'); else { field.classList.remove('shake'); void field.offsetWidth; field.classList.add('shake'); } return; }
     const kept = await keep('ok');
-    if (kept) toast(T('Kept', 'Đã lưu'), kept);
+    if (kept) { kept.item = cur.item; toast(T('Kept', 'Đã lưu'), kept); }
     next();
   }
 
@@ -342,23 +430,31 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     hideToast();
     if (!k) return;
     try { await InkDB.remove(k.id); } catch (e) { return; }
-    const n = (counts.get(k.sample.c) || 1) - 1;
-    if (n > 0) counts.set(k.sample.c, n); else counts.delete(k.sample.c);
+    const key = keyOf(k.sample), n = (counts.get(key) || 1) - 1;
+    if (n > 0) counts.set(key, n); else counts.delete(key);
     total = Math.max(0, total - 1); stats();
-    recent = recent.filter(c => c !== k.sample.c);
-    // the character again
-    const item = chars.find(it => it.c === k.sample.c);
-    if (item) { recent.push(item.c); cur.item = item; cur.template = InkShape.template(item.t); $('glyph').textContent = item.c; $('reading').textContent = item.r; clearField(); thumbs(item.c); }
+    // the character (the part) again, in the place of the one that came after it
+    if (k.item.part) recentParts = recentParts.filter(x => x !== k.item.part.key);
+    else recent = recent.filter(c => c !== k.sample.c);
+    const item = k.item;
+    if (item.part) recentParts.push(item.part.key); else recent.push(item.c);
+    cur.item = item; cur.template = InkShape.template(item.part ? item.part.t : item.t);
+    show(item); placeField(cur.layout); clearField(); thumbs(item);
   }
 
   // the earlier samples of the character, small
-  async function thumbs(c) {
+  async function thumbs(item) {
     const box = $('thumbs');
     let list = [];
-    try { list = await InkDB.byChar(c, 14); } catch (e) { /* no storage */ }
-    if (!cur || cur.item.c !== c) return;
+    try { list = item.part ? await InkDB.byPart(item.part.key, 14) : await InkDB.byChar(item.c, 14); } catch (e) { /* no storage */ }
+    if (!cur || cur.item !== item) return;
     box.replaceChildren();
-    if (!list.length) { const s = document.createElement('span'); s.className = 'none'; say(s, 'Your earlier samples of this character appear here.', 'Các mẫu trước của bạn cho chữ này hiện ở đây.'); box.append(s); return; }
+    if (!list.length) {
+      const s = document.createElement('span'); s.className = 'none';
+      if (item.part) say(s, 'Your earlier samples of this part appear here.', 'Các mẫu trước của bạn cho bộ phận này hiện ở đây.');
+      else say(s, 'Your earlier samples of this character appear here.', 'Các mẫu trước của bạn cho chữ này hiện ở đây.');
+      box.append(s); return;
+    }
     for (const s of list) box.append(picture(s.strokes, 42));
   }
 
@@ -406,17 +502,19 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     $('del-no').onclick = () => closeCard();
     $('del-yes').onclick = async () => {
       try { await InkDB.clear(); } catch (e) { toast(e.message); return; }
-      counts = new Map(); total = 0; recent = [];
+      counts = new Map(); total = 0; recent = []; recentParts = [];
       closeCard(); stats(); hideToast();
       toast(T('All samples deleted', 'Đã xoá tất cả mẫu'));
-      if (mode === 'calm') next();
+      if (mode !== 'game') next();
     };
   }
 
   // ---------- the modes ----------
-  function setMode(m) {
+  async function setMode(m) {
     if (m === mode) return;
+    if (m === 'parts' && !(await loadParts())) return;
     mode = m;
+    try { localStorage.setItem(MODE_KEY, m === 'parts' ? 'parts' : 'calm'); } catch (e) { /* no storage */ }
     document.body.dataset.mode = m;
     stopGame();
     marks();
