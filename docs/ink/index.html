@@ -28,9 +28,11 @@
     <button type="button" class="icon" id="menu-btn" aria-label="Menu" data-vi-aria-label="Menu" aria-haspopup="true" aria-expanded="false">⋮</button>
     <div class="menu" id="menu" hidden>
       <button type="button" id="export"><span data-vi="Xuất các mẫu (JSON)">Export the samples (JSON)</span></button>
+      <button type="button" id="delete-all"><span data-vi="Xoá tất cả mẫu…">Delete all samples…</span></button>
       <a href="about"><span data-vi="Giới thiệu">About</span></a>
     </div>
   </header>
+  <div class="goal" id="goal" role="progressbar" aria-label="Progress of the collection" data-vi-aria-label="Tiến độ bộ sưu tập"><i></i></div>
 
   <section class="prompt" id="prompt">
     <div class="thumbs" id="thumbs" aria-label="Your earlier samples" data-vi-aria-label="Các mẫu trước của bạn"></div>
@@ -44,7 +46,6 @@
   </section>
 
   <section class="stage" id="stage">
-    <span class="beside" id="beside" lang="zh-Hant" hidden></span>
     <div class="auto" id="auto" hidden><i></i></div>
     <div class="field" id="field"><svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><rect x="1" y="1" width="98" height="98" rx="2" class="edge"/><path d="M50 1V99M1 50H99" class="cross"/><path d="M1 1L99 99M99 1L1 99" class="diag"/></svg></div>
     <canvas id="canvas"></canvas>

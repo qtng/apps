@@ -8,6 +8,7 @@ A sample: { id, c, mode: 'calm' | 'game', prompt, level, limitMs, status: 'ok' |
   await InkDB.counts()           Map character → number of samples (status 'ok')
   await InkDB.all()              every sample (the export)
   await InkDB.remove(id)         one sample (Undo of the last one)
+  await InkDB.clear()            all of them (the menu, after a question)
 */
 window.InkDB = (() => {
   let db = null;
@@ -30,6 +31,7 @@ window.InkDB = (() => {
   return {
     async add(sample) { return done((await store('readwrite')).add(sample)); },
     async remove(id) { return done((await store('readwrite')).delete(id)); },
+    async clear() { return done((await store('readwrite')).clear()); },
     async all() { return done((await store('readonly')).getAll()); },
     async byChar(c, n = 12) {
       const s = await store('readonly');
