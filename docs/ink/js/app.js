@@ -217,14 +217,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
       if (p) { const it = chars.find(x => parts.hosts[x.c] === h); recentParts.push(p[0]); return { ...it, part: { key: p[0], label: parts.keys[p[0]] || p[0], lines: p[1], box: p[2], t: p[3] }, L: h.L }; }
     }
     if (!m.size) return null;
-    const avoid = new Set(recentParts.slice(-Math.max(0, Math.min(RECENT, m.size - 10))));
-    let best = Infinity, pool = [];
-    for (const k of m.keys()) {
-      if (avoid.has(k)) continue;
-      const n = counts.get('part:' + k) || 0;
-      if (n < best) { best = n; pool = [k]; } else if (n === best) pool.push(k);
-    }
-    const key = pool[Math.floor(Math.random() * pool.length)] || m.keys().next().value;
+    const key = fewest([...m.keys()], k => counts.get('part:' + k) || 0, k => k, recentParts);
     recentParts.push(key);
     if (recentParts.length > RECENT) recentParts.shift();
     // a character (another one than last time, each as likely), then one of its strokes of that kind (a stroke can be in a character more than once)
@@ -236,18 +229,24 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     return { ...it, part: { key, label: parts.keys[key] || key, lines: p[1], box: p[2], t: p[3] }, L: parts.hosts[it.c].L };
   }
 
+  // the next one: always among those with the fewest samples (a character or a part that is behind comes first, however recently it was asked for);
+  // among them one not asked for lately (the last few are kept back, fewer in a small batch), else the one asked for longest ago
+  function fewest(list, count, id, recentList) {
+    if (!list.length) return null;
+    let best = Infinity;
+    for (const x of list) best = Math.min(best, count(x));
+    const low = list.filter(x => count(x) === best);
+    const avoid = new Set(recentList.slice(-Math.max(0, Math.min(RECENT, list.length - 10))));
+    const free = low.filter(x => !avoid.has(id(x)));
+    if (free.length) return free[Math.floor(Math.random() * free.length)];
+    return low.reduce((a, b) => (recentList.lastIndexOf(id(a)) <= recentList.lastIndexOf(id(b)) ? a : b));
+  }
+
   function choose() {
     if (mode === 'parts') { const it = choosePart(); if (it) return it; }
     if (asked) { const it = chars.find(x => x.c === asked); asked = null; if (it) { recent.push(it.c); return it; } }
     const list = batchChars(batch);
-    const avoid = new Set(recent.slice(-Math.max(0, Math.min(RECENT, list.length - 10))));   // a small batch: fewer kept back
-    let best = Infinity, pool = [];
-    for (const it of list) {
-      if (avoid.has(it.c)) continue;
-      const n = counts.get(it.c) || 0;
-      if (n < best) { best = n; pool = [it]; } else if (n === best) pool.push(it);
-    }
-    const it = pool[Math.floor(Math.random() * pool.length)] || list[0] || chars[0];
+    const it = fewest(list, x => counts.get(x.c) || 0, x => x.c, recent) || chars[0];
     recent.push(it.c);
     if (recent.length > RECENT) recent.shift();
     return it;
