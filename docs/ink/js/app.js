@@ -21,7 +21,8 @@ that has it (another one each time, if there are several). The light compares wi
 part (its key) and partBox (its extent in the box 200 × 200 of the character); c is the character it was shown in, layout.region the box in pixels of the stage.
 Parts starts with the batch of the strokes (parts.json "strokes": the kinds of strokes found in at least 100 characters of the stroke data, 33,
 each in one of a few characters; every character can be put together from them, the rare kinds from their pieces), then the batches of
-characters; each mode keeps its own batch (localStorage nomInkBatch, nomInkPartsBatch: -1 = the strokes).
+characters; each mode keeps its own batch (localStorage nomInkBatch, nomInkPartsBatch: -1 = the strokes). In Parts the square is always as big as the stage allows, in the middle
+(the box of the part as big as it can be). The menu deletes the samples of one batch only: the characters of the batch of Calm, the parts of the batch of Parts.
 Game: the character falls in its well; it must be written before it lands (the time from its strokes, shorter with every level). When the light is green
 and the pen rests for a moment, it is taken; time up without green: game over (that sample is kept as 'timeout'). From EVAL_LEVEL on the samples
 are kept with eval: false (only the game: too fast to be handwriting worth learning from).
@@ -30,7 +31,7 @@ A sample (v 2): { v, c, mode, prompt (null; 'normal' | 'quick' | 'flowing' | 'sl
 (beside: a character in grey left of the square, until 2026-11-26)
 strokes: [[[x, y, t, p], …], …] (x, y in CSS pixels of the stage, which does not move: the shape is exactly as written; t ms from the first touch of the
 character, p the pressure 0..1 or null), pointer ('touch' | 'pen' | 'mouse'), device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept),
-created (ISO time) }. layout.x, y, w, h: the square suggested. Samples of the first evening also have layout.drift and .at (the field drifted then);
+created (ISO time), batch (since 2026-11-26: the batch it was written in, -1 = the strokes) }. layout.x, y, w, h: the square suggested. Samples of the first evening also have layout.drift and .at (the field drifted then);
 version 1 (the first day) had the points in pixels of the field and fields of every shape.
 */
 (() => {
@@ -76,7 +77,8 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     $('menu-btn').addEventListener('click', e => { e.stopPropagation(); toggleMenu(); });
     document.addEventListener('click', e => { if (!$('menu').hidden && !$('menu').contains(e.target)) toggleMenu(false); });
     $('export').addEventListener('click', () => { toggleMenu(false); exportAll(); });
-    $('delete-all').addEventListener('click', () => { toggleMenu(false); askDelete(); });
+    $('delete-chars').addEventListener('click', () => { toggleMenu(false); askDelete('calm'); });
+    $('delete-parts').addEventListener('click', () => { toggleMenu(false); askDelete('parts'); });
     $('batch-btn').addEventListener('click', chooseBatch);
     try {
       savedBatch.calm = Math.max(0, Math.min(batchCount() - 1, +(localStorage.getItem(BATCH_KEY) || 0) | 0));
@@ -123,6 +125,10 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
       : T(`${en}: ${done[0]} of ${done[1]} (${GOAL} per character)`, `${vi}: ${done[0]} / ${done[1]} (${GOAL} mỗi chữ)`);
     const m = $('batch-btn');
     if (m) { m.setAttribute('data-en', `${en} (${p} %)…`); m.setAttribute('data-vi', `${vi} (${p} %)…`); m.textContent = T(`${en} (${p} %)…`, `${vi} (${p} %)…`); }
+    // the two deletions of the menu: the characters of the batch of Calm, the parts of the batch of Parts
+    const [ce, cv] = batchName(savedBatch.calm), [pe, pv] = batchName(savedBatch.parts);
+    say($('delete-chars'), `Delete the characters of ${ce.toLowerCase()}…`, `Xoá các chữ của ${cv.toLowerCase()}…`);
+    say($('delete-parts'), savedBatch.parts < 0 ? 'Delete the strokes…' : `Delete the parts of ${pe.toLowerCase()}…`, savedBatch.parts < 0 ? 'Xoá các nét…' : `Xoá các bộ phận của ${pv.toLowerCase()}…`);
   }
 
   function toggleMenu(open) {
@@ -282,6 +288,10 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   // the field in the stage: its place and size for this character
   function layoutFor(kind) {
     const W = stage.clientWidth, H = stage.clientHeight, m = 10, S = Math.min(W, H);
+    if (mode === 'parts') {   // Parts: always the whole height (or width), in the middle: the box of the part as big as it can be
+      const w = Math.round(Math.max(40, S - 2 * m));
+      return { kind, x: Math.round((W - w) / 2), y: Math.round((H - w) / 2), w, h: w, stageW: Math.round(W), stageH: Math.round(H) };
+    }
     const room = (side, size) => m + Math.random() * Math.max(0, side - 2 * m - size);
     const w = Math.min(S * rand(.55, .9), W - 2 * m, H - 2 * m);
     const x = room(W, w), y = room(H, w);
@@ -418,6 +428,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
       layout: { kind: l.kind, x: l.x, y: l.y, w: l.w, h: l.h, stageW: l.stageW, stageH: l.stageH, beside: null },
       strokes: cur.strokes, pointer: cur.pointer, device: device(), light: cur.light, created: new Date().toISOString(),
     };
+    sample.batch = batch;   // the batch it was written in (-1: the strokes; since 2026-11-26)
     if (cur.item.part) { sample.part = cur.item.part.key; sample.partBox = cur.item.part.box; sample.layout.region = l.region; }
     let id = null;
     try { id = await InkDB.add(sample); } catch (e) { toast(T('Not saved: ', 'Chưa lưu: ') + e.message); return null; }
@@ -515,20 +526,44 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   }
 
   // ---------- deleting all samples ----------
-  function askDelete() {
-    card(`<h2>${T('Delete all samples?', 'Xoá tất cả mẫu?')}</h2>
-      <p>${T(`All ${total} samples on this device are deleted. Export them first if you want to keep them.`, `Tất cả ${total} mẫu trên thiết bị này sẽ bị xoá. Hãy xuất chúng trước nếu bạn muốn giữ lại.`)}</p>
+  // the samples of one batch: of the characters (Calm and the game) or of the parts (Parts); the samples of other batches stay.
+  // A sample knows its batch since 2026-11-26; an older one belongs to it by its character (Calm), by its character and its part (Parts)
+  async function batchSamples(which) {
+    const b = savedBatch[which];
+    if (which === 'parts' && !(await loadParts())) return null;
+    let inBatch;
+    if (which === 'calm') { const set = new Set(batchChars(b).map(x => x.c)); inBatch = s => !s.part && (s.batch !== undefined ? s.batch === b : set.has(s.c)); }
+    else {
+      const pairs = new Set();
+      for (const [key, hosts] of batchParts(b)) for (const [it] of hosts) pairs.add(it.c + '\u0000' + key);
+      inBatch = s => !!s.part && (s.batch !== undefined ? s.batch === b : pairs.has(s.c + '\u0000' + s.part));
+    }
+    return (await InkDB.all()).filter(inBatch);
+  }
+
+  async function askDelete(which) {
+    let list;
+    try { list = await batchSamples(which); } catch (e) { toast(e.message); return; }
+    if (!list) return;
+    const [en, vi] = batchName(savedBatch[which]);
+    const what = which === 'calm' ? T(`the characters of ${en.toLowerCase()}`, `các chữ của ${vi.toLowerCase()}`)
+      : savedBatch.parts < 0 ? T('the strokes', 'các nét') : T(`the parts of ${en.toLowerCase()}`, `các bộ phận của ${vi.toLowerCase()}`);
+    if (!list.length) { toast(T(`No samples of ${what}`, `Không có mẫu nào của ${what}`)); return; }
+    card(`<h2>${T(`Delete ${what}?`, `Xoá ${what}?`)}</h2>
+      <p>${T(`${list.length} samples on this device are deleted, the others stay. Export them first if you want to keep them.`, `${list.length} mẫu trên thiết bị này sẽ bị xoá, các mẫu khác vẫn còn. Hãy xuất chúng trước nếu bạn muốn giữ lại.`)}</p>
       <div class="row"><button type="button" id="del-export">${T('Export', 'Xuất')}</button><button type="button" id="del-no">${T('Cancel', 'Huỷ')}</button><button type="button" class="main" id="del-yes">${T('Delete', 'Xoá')}</button></div>`);
     $('del-export').onclick = () => exportAll();
     $('del-no').onclick = () => closeCard();
     $('del-yes').onclick = async () => {
-      try { await InkDB.clear(); } catch (e) { toast(e.message); return; }
-      counts = new Map(); total = 0; recent = []; recentParts = [];
+      try { await InkDB.removeMany(list.map(s => s.id)); counts = await InkDB.counts(); } catch (e) { toast(e.message); return; }
+      total = 0; for (const n of counts.values()) total += n;
+      recent = []; recentParts = [];
       closeCard(); stats(); hideToast();
-      toast(T('All samples deleted', 'Đã xoá tất cả mẫu'));
+      toast(T(`${list.length} samples deleted`, `Đã xoá ${list.length} mẫu`));
       if (mode !== 'game') next();
     };
   }
+
 
   // ---------- the modes ----------
   async function setMode(m) {
