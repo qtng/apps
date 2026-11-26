@@ -104,3 +104,11 @@ body[data-mode="game"] .tools { grid-template-columns: 1fr 1fr 0 1.4fr }
 .card .row button.main { background: var(--accent); border-color: var(--accent); color: var(--accent-ink) }
 .card .last { display: flex; gap: .3rem; justify-content: center; flex-wrap: wrap; margin-top: .6rem }
 .card .last canvas { width: 2.6rem; height: 2.6rem; background: var(--field); border: 1px solid var(--line); border-radius: .35rem }
+
+/* the batches (the menu): each with its first characters and how far it is */
+.batches { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; max-height: 55dvh; overflow-y: auto; margin-top: .6rem; text-align: left }
+.batch { position: relative; display: flex; flex-direction: column; gap: .1rem; padding: .5rem .6rem .7rem; border: 1px solid var(--line); border-radius: .6rem; background: var(--field); overflow: hidden }
+.batch.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) }
+.batch .glyphs { font-family: "Pen", serif; font-size: 1.05rem; color: var(--muted); white-space: nowrap; overflow: hidden }
+.batch .pct { font-size: .8rem; color: var(--muted) }
+.batch i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--green) }

@@ -5,7 +5,8 @@ A character of chars.json (the characters of dict.csv of chunom.org, built by fe
 its reading in the upper half of the screen; it is written in the lower half, anywhere: the square drawn there (a practice grid: a square with its cross
 and diagonals) is only a suggestion. It has another place and size for every character (55–90 % of the shorter side of the stage, left, middle or right,
 higher or lower), so that the hand is held a little differently every time (squeezed shapes are
-not asked for: they can be made from any sample later). Nothing moves (a dark screen, calm for the eyes). Every character is written once, then the next; the characters with the fewest
+not asked for: they can be made from any sample later). Nothing moves (a dark screen, calm for the eyes). The characters come in batches of BATCH (chars.json is in the order of frequency: batch 1 = the 50 most frequent); the menu chooses the batch
+(localStorage nomInkBatch) and shows how far each one is (GOAL samples of each of its characters). Every character is written once, then the next; the characters with the fewest
 samples come first, never one of the last RECENT again. Above, the earlier samples of the character (small pictures). The traffic light (js/shape.js)
 tells whether enough is written that looks like the character.
 
@@ -37,7 +38,9 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
 
   const AUTO_MS = 1500;     // calm: from lifting the pen (light green) to the next character
   const YELLOW_MS = 3500;   // the same with the light yellow (enough ink, the shape not quite): a longer rest
-  const GOAL = 10;          // samples per character the collection aims at (the thin bar below the title)
+  const GOAL = 10;          // samples per character the collection aims at (the thin bar below the title: of the batch)
+  const BATCH = 50;         // characters per batch
+  const BATCH_KEY = 'nomInkBatch';
 
   const pick = list => { let sum = 0; for (const x of list) sum += x.w; let r = Math.random() * sum; for (const x of list) { if ((r -= x.w) < 0) return x; } return list[list.length - 1]; };
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -62,6 +65,8 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     document.addEventListener('click', e => { if (!$('menu').hidden && !$('menu').contains(e.target)) toggleMenu(false); });
     $('export').addEventListener('click', () => { toggleMenu(false); exportAll(); });
     $('delete-all').addEventListener('click', () => { toggleMenu(false); askDelete(); });
+    $('batch-btn').addEventListener('click', chooseBatch);
+    try { batch = Math.max(0, Math.min(batchCount() - 1, +(localStorage.getItem(BATCH_KEY) || 0) | 0)); } catch (e) { batch = 0; }
     // a new version of the app (the service worker took over): load it, but not in the middle of a character
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller)
       navigator.serviceWorker.addEventListener('controllerchange', () => { if (!cur || !cur.strokes.length) location.reload(); else reloadSoon = true; });
@@ -89,14 +94,14 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   }
 
   function stats() {
-    const n = counts.size;
-    $('stats').textContent = T(`${total} ${total === 1 ? 'sample' : 'samples'} · ${n}/${chars.length}`, `${total} mẫu · ${n}/${chars.length}`);
-    // the progress of the collection: GOAL samples of every character (more of one character do not count)
-    let got = 0;
-    for (const v of counts.values()) got += Math.min(v, GOAL);
-    const all = chars.length * GOAL, share = all ? got / all : 0;
-    $('goal').firstElementChild.style.width = `${(share * 100).toFixed(2)}%`;
-    $('goal').title = T(`${got} of ${all} (${GOAL} per character): ${(share * 100).toFixed(1)} %`, `${got} / ${all} (${GOAL} mỗi chữ): ${(share * 100).toFixed(1)} %`);
+    if (!chars.length) return;
+    // the batch: how far it is (GOAL samples of each of its characters), in the bar below the title and in the menu
+    const done = batchDone(batch), p = pct(done);
+    $('stats').textContent = T(`Batch ${batch + 1} · ${p} % · ${total} ${total === 1 ? 'sample' : 'samples'}`, `Bộ ${batch + 1} · ${p} % · ${total} mẫu`);
+    $('goal').firstElementChild.style.width = `${p}%`;
+    $('goal').title = T(`Batch ${batch + 1}: ${done[0]} of ${done[1]} (${GOAL} per character)`, `Bộ ${batch + 1}: ${done[0]} / ${done[1]} (${GOAL} mỗi chữ)`);
+    const m = $('batch-btn');
+    if (m) { m.setAttribute('data-en', `Batch ${batch + 1} (${p} %)…`); m.setAttribute('data-vi', `Bộ ${batch + 1} (${p} %)…`); m.textContent = T(`Batch ${batch + 1} (${p} %)…`, `Bộ ${batch + 1} (${p} %)…`); }
   }
 
   function toggleMenu(open) {
@@ -109,16 +114,52 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   // #c=<character> in the address: that character first (to practise one, or for a test)
   let asked = (() => { try { const m = /(?:^#|&)c=([^&]+)/.exec(location.hash); return m ? decodeURIComponent(m[1]) : null; } catch (e) { return null; } })();
 
+  // ---------- the batches ----------
+  let batch = 0;
+  const batchCount = () => Math.ceil(chars.length / BATCH);
+  const batchChars = b => chars.slice(b * BATCH, (b + 1) * BATCH);
+  // how far a batch is: GOAL samples of each of its characters (more of one do not count) → [got, all]
+  function batchDone(b) {
+    const list = batchChars(b);
+    let got = 0;
+    for (const it of list) got += Math.min(counts.get(it.c) || 0, GOAL);
+    return [got, list.length * GOAL];
+  }
+  const pct = ([got, all]) => (all ? Math.floor(got * 1000 / all) / 10 : 0);
+
+  function chooseBatch() {
+    toggleMenu(false);
+    const rows = [];
+    for (let b = 0; b < batchCount(); b++) {
+      const p = pct(batchDone(b)), list = batchChars(b);
+      rows.push(`<button type="button" class="batch${b === batch ? ' on' : ''}" data-b="${b}"><b>${T('Batch', 'Bộ')} ${b + 1}</b><span class="glyphs" lang="zh-Hant">${list.slice(0, 8).map(x => x.c).join('')}</span>` +
+        `<span class="pct">${p} %</span><i style="width:${p}%"></i></button>`);
+    }
+    card(`<h2>${T('Choose a batch', 'Chọn bộ chữ')}</h2><p>${T(`${BATCH} characters each, the most frequent first; ${GOAL} samples of each character make 100 %.`, `Mỗi bộ ${BATCH} chữ, chữ thường gặp nhất trước; ${GOAL} mẫu mỗi chữ là 100 %.`)}</p>
+      <div class="batches">${rows.join('')}</div><div class="row"><button type="button" id="batch-close">${T('Close', 'Đóng')}</button></div>`);
+    for (const el of document.querySelectorAll('#card .batch')) el.onclick = () => { setBatch(+el.dataset.b); closeCard(); };
+    $('batch-close').onclick = () => closeCard();
+  }
+
+  function setBatch(b) {
+    batch = Math.max(0, Math.min(batchCount() - 1, b | 0));
+    try { localStorage.setItem(BATCH_KEY, String(batch)); } catch (e) { /* no storage */ }
+    recent = [];
+    stats();
+    if (!game) next();
+  }
+
   function choose() {
     if (asked) { const it = chars.find(x => x.c === asked); asked = null; if (it) { recent.push(it.c); return it; } }
-    const avoid = new Set(recent);
+    const list = batchChars(batch);
+    const avoid = new Set(recent.slice(-Math.max(0, Math.min(RECENT, list.length - 10))));   // a small batch: fewer kept back
     let best = Infinity, pool = [];
-    for (const it of chars) {
+    for (const it of list) {
       if (avoid.has(it.c)) continue;
       const n = counts.get(it.c) || 0;
       if (n < best) { best = n; pool = [it]; } else if (n === best) pool.push(it);
     }
-    const it = pool[Math.floor(Math.random() * pool.length)] || chars[0];
+    const it = pool[Math.floor(Math.random() * pool.length)] || list[0] || chars[0];
     recent.push(it.c);
     if (recent.length > RECENT) recent.shift();
     return it;
