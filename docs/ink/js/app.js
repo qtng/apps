@@ -19,7 +19,7 @@ written alone, in its place: the character is drawn above from its strokes with 
 extent in the character). The parts of the characters of the batch, the one with the fewest samples first (GOAL each), in a character of the batch
 that has it (another one each time, if there are several). The light compares with the strokes of the part only. Such a sample has mode 'parts',
 part (its key) and partBox (its extent in the box 200 × 200 of the character); c is the character it was shown in, layout.region the box in pixels of the stage.
-Parts starts with the batch of the strokes (parts.json "strokes": the kinds of strokes found in at least 100 characters of the stroke data, 33,
+Parts starts with the batch of the strokes (parts.json "strokes": the kinds of strokes found in at least 100 characters of the stroke data, 23 (synonyms of the data merged),
 each in one of a few characters; every character can be put together from them, the rare kinds from their pieces), then the batches of
 characters; each mode keeps its own batch (localStorage nomInkBatch, nomInkPartsBatch: -1 = the strokes). In Parts the square is always as big as the stage allows, in the middle
 (the box of the part as big as it can be). The menu deletes the characters of the batch of Calm, or all parts and strokes (they belong to no batch: a part counts wherever it is).
