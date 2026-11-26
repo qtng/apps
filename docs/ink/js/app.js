@@ -13,7 +13,8 @@ tells whether enough is written that looks like the character.
 Calm: no prompt of the tempo (there were some on the first day; nobody reads them while writing: the tempo is measured). When the light is green and the pen is lifted, a bar runs down (AUTO_MS, a little slower than Gboard; yellow: YELLOW_MS, longer, in yellow: a
 character of few strokes or written very freely may never turn green); then the
 sample is kept and the next character comes (Undo in the message for a moment); a new stroke stops it. Next does the same at once, Skip goes on without it.
-Parts: one part of a character (parts.json, built by features/ink/tools/build_parts.py: the top level of its IDS, from the stroke order data) is
+Parts: one part of a character (parts.json, built by features/ink/tools/build_parts.py: the top level of its IDS, from the stroke order data; an
+enclosure closed after its inside in two parts, 囗① and 囗②, asked for separately; a part of one stroke is that stroke, key 'stroke:<kind>') is
 written alone, in its place: the character is drawn above from its strokes with that part bright, a box in the square shows where the part is (its
 extent in the character). The parts of the characters of the batch, the one with the fewest samples first (GOAL each), in a character of the batch
 that has it (another one each time, if there are several). The light compares with the strokes of the part only. Such a sample has mode 'parts',
@@ -52,7 +53,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   const rand = (a, b) => a + Math.random() * (b - a);
 
   let chars = [], counts = new Map(), recent = [], total = 0;
-  let parts = null;      // parts.json: { hosts: { character: { L, parts: [[key, first line, end line, box, template], …] } }, keys }
+  let parts = null;      // parts.json: { hosts: { character: { L, parts: [[key, [line, …], box, template], …] } }, keys: { key: label } }
   let mode = 'calm';
   let cur = null;        // { item, template, layout, strokes, t0, pointer, light }
   let drawing = null;    // the stroke being written
@@ -124,6 +125,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   // ---------- the next character ----------
   // #c=<character> in the address: that character first (to practise one, or for a test)
   let asked = (() => { try { const m = /(?:^#|&)c=([^&]+)/.exec(location.hash); return m ? decodeURIComponent(m[1]) : null; } catch (e) { return null; } })();
+  let askedPart = (() => { try { const m = /&p=([^&]+)/.exec(location.hash); return m ? decodeURIComponent(m[1]) : null; } catch (e) { return null; } })();
 
   // ---------- the batches ----------
   let batch = 0;
@@ -186,6 +188,11 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   let recentParts = [], lastHost = new Map();
   function choosePart() {
     const m = batchParts(batch);
+    if (asked) {   // #c=<character>&p=<key>: that part of that character first (for a test)
+      const h = parts.hosts[asked], k = askedPart; asked = askedPart = null;
+      const p = h && (h.parts.find(x => x[0] === k) || h.parts[0]);
+      if (p) { const it = chars.find(x => parts.hosts[x.c] === h); recentParts.push(p[0]); return { ...it, part: { key: p[0], label: parts.keys[p[0]] || p[0], lines: p[1], box: p[2], t: p[3] }, L: h.L }; }
+    }
     if (!m.size) return null;
     const avoid = new Set(recentParts.slice(-Math.max(0, Math.min(RECENT, m.size - 10))));
     let best = Infinity, pool = [];
@@ -200,7 +207,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     const hosts = m.get(key), others = hosts.filter(h => h[0].c !== lastHost.get(key));
     const [it, p] = (others.length ? others : hosts)[Math.floor(Math.random() * (others.length || hosts.length))];
     lastHost.set(key, it.c);
-    return { ...it, part: { key, label: parts.keys[key] || key, a: p[1], b: p[2], box: p[3], t: p[4] }, L: parts.hosts[it.c].L };
+    return { ...it, part: { key, label: parts.keys[key] || key, lines: p[1], box: p[2], t: p[3] }, L: parts.hosts[it.c].L };
   }
 
   function choose() {
@@ -239,8 +246,8 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     const g = $('glyph'), r = $('reading');
     if (!item.part) { g.textContent = item.c; r.textContent = item.r; $('region').hidden = true; return; }
     const p = item.part, esc = v => v.replace(/[&<>"]/g, ch => `&#${ch.charCodeAt(0)};`);
-    const path = (from, to) => item.L.slice(from, to).join(' ');
-    g.innerHTML = `<svg viewBox="0 0 200 200" role="img" aria-label="${esc(p.label)} · ${esc(item.c)}"><path class="rest" d="${path(0, p.a)} ${path(p.b)}"/><path class="part" d="${path(p.a, p.b)}"/></svg>`;
+    const on = new Set(p.lines), path = mine => item.L.filter((_, k) => on.has(k) === mine).join(' ');
+    g.innerHTML = `<svg viewBox="0 0 200 200" role="img" aria-label="${esc(p.label)} · ${esc(item.c)}"><path class="rest" d="${path(false)}"/><path class="part" d="${path(true)}"/></svg>`;
     r.innerHTML = `<span class="han" lang="zh-Hant">${esc(p.label)}</span> · <span class="han" lang="zh-Hant">${esc(item.c)}</span> ${esc(item.r)}`;
   }
 
