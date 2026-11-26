@@ -10,7 +10,8 @@ Nothing leaves the device but by the export.
   await InkDB.counts()           Map character → number of samples (status 'ok'), the parts as 'part:' + key
   await InkDB.all()              every sample (the export)
   await InkDB.remove(id)         one sample (Undo of the last one)
-  await InkDB.clear()            all of them (the menu, after a question)
+  await InkDB.removeMany(ids)    several (the menu: the samples of a batch, after a question)
+  await InkDB.clear()            all of them
 */
 window.InkDB = (() => {
   let db = null;
@@ -44,6 +45,10 @@ window.InkDB = (() => {
   return {
     async add(sample) { return done((await store('readwrite')).add(sample)); },
     async remove(id) { return done((await store('readwrite')).delete(id)); },
+    async removeMany(ids) {
+      const s = await store('readwrite');
+      await Promise.all(ids.map(id => done(s.delete(id))));
+    },
     async clear() { return done((await store('readwrite')).clear()); },
     async all() { return done((await store('readonly')).getAll()); },
     async byChar(c, n = 12) { return last('c', c, n, v => !v.part); },

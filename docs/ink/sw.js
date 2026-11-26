@@ -3,7 +3,7 @@ Service worker of Nôm Ink (ink/): the app works offline.
 Raise CACHE when a file of PRECACHE changes (a new name = a new cache; the old ones are deleted when the new worker takes over). Keep PRECACHE equal to what
 index.html loads. The fonts of cdn.qatt.org (the slices of Pen with the characters) are cached when first used and renewed in the background.
 */
-const CACHE = 'nom-ink-v11';
+const CACHE = 'nom-ink-v12';
 const HERE = new URL('./', self.location).href;
 const at = p => new URL(p, HERE).href;
 const PRECACHE = ['./', 'css/app.css', 'js/lang.js', 'js/shape.js', 'js/db.js', 'js/app.js', 'chars.json', 'parts.json', 'manifest.webmanifest',
