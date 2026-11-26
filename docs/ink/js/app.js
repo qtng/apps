@@ -222,8 +222,11 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     const key = pool[Math.floor(Math.random() * pool.length)] || m.keys().next().value;
     recentParts.push(key);
     if (recentParts.length > RECENT) recentParts.shift();
-    const hosts = m.get(key), others = hosts.filter(h => h[0].c !== lastHost.get(key));
-    const [it, p] = (others.length ? others : hosts)[Math.floor(Math.random() * (others.length || hosts.length))];
+    // a character (another one than last time, each as likely), then one of its strokes of that kind (a stroke can be in a character more than once)
+    const hosts = m.get(key), names = [...new Set(hosts.map(h => h[0].c))], other = names.filter(c => c !== lastHost.get(key));
+    const pickFrom = other.length ? other : names, name = pickFrom[Math.floor(Math.random() * pickFrom.length)];
+    const mine = hosts.filter(h => h[0].c === name);
+    const [it, p] = mine[Math.floor(Math.random() * mine.length)];
     lastHost.set(key, it.c);
     return { ...it, part: { key, label: parts.keys[key] || key, lines: p[1], box: p[2], t: p[3] }, L: parts.hosts[it.c].L };
   }
