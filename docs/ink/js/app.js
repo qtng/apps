@@ -19,6 +19,9 @@ written alone, in its place: the character is drawn above from its strokes with 
 extent in the character). The parts of the characters of the batch, the one with the fewest samples first (GOAL each), in a character of the batch
 that has it (another one each time, if there are several). The light compares with the strokes of the part only. Such a sample has mode 'parts',
 part (its key) and partBox (its extent in the box 200 × 200 of the character); c is the character it was shown in, layout.region the box in pixels of the stage.
+Parts starts with the batch of the strokes (parts.json "strokes": the kinds of strokes found in at least 100 characters of the stroke data, 33,
+each in one of a few characters; every character can be put together from them, the rare kinds from their pieces), then the batches of
+characters; each mode keeps its own batch (localStorage nomInkBatch, nomInkPartsBatch: -1 = the strokes).
 Game: the character falls in its well; it must be written before it lands (the time from its strokes, shorter with every level). When the light is green
 and the pen rests for a moment, it is taken; time up without green: game over (that sample is kept as 'timeout'). From EVAL_LEVEL on the samples
 are kept with eval: false (only the game: too fast to be handwriting worth learning from).
@@ -47,6 +50,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   const GOAL = 10;          // samples per character the collection aims at (the thin bar below the title: of the batch)
   const BATCH = 50;         // characters per batch
   const BATCH_KEY = 'nomInkBatch';
+  const PARTS_BATCH_KEY = 'nomInkPartsBatch';   // the batch of Parts (-1: the strokes)
   const MODE_KEY = 'nomInkMode';   // 'parts' when the app was left in that mode (it opens in it again), else calm
 
   const pick = list => { let sum = 0; for (const x of list) sum += x.w; let r = Math.random() * sum; for (const x of list) { if ((r -= x.w) < 0) return x; } return list[list.length - 1]; };
@@ -74,7 +78,12 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     $('export').addEventListener('click', () => { toggleMenu(false); exportAll(); });
     $('delete-all').addEventListener('click', () => { toggleMenu(false); askDelete(); });
     $('batch-btn').addEventListener('click', chooseBatch);
-    try { batch = Math.max(0, Math.min(batchCount() - 1, +(localStorage.getItem(BATCH_KEY) || 0) | 0)); } catch (e) { batch = 0; }
+    try {
+      savedBatch.calm = Math.max(0, Math.min(batchCount() - 1, +(localStorage.getItem(BATCH_KEY) || 0) | 0));
+      const pb = localStorage.getItem(PARTS_BATCH_KEY);
+      if (pb !== null) savedBatch.parts = Math.max(-1, Math.min(batchCount() - 1, +pb | 0));
+    } catch (e) { /* no storage */ }
+    batch = savedBatch.calm;
     // a new version of the app (the service worker took over): load it, but not in the middle of a character
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller)
       navigator.serviceWorker.addEventListener('controllerchange', () => { if (!cur || !cur.strokes.length) location.reload(); else reloadSoon = true; });
@@ -106,14 +115,14 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   function stats() {
     if (!chars.length) return;
     // the batch: how far it is (GOAL samples of each of its characters), in the bar below the title and in the menu
-    const done = batchDone(batch), p = pct(done);
+    const done = batchDone(batch), p = pct(done), [en, vi] = batchName(batch);
     const pp = mode === 'parts';
-    $('stats').textContent = T(`Batch ${batch + 1} · ${p} % · ${total} ${total === 1 ? 'sample' : 'samples'}`, `Bộ ${batch + 1} · ${p} % · ${total} mẫu`);
+    $('stats').textContent = T(`${en} · ${p} % · ${total} ${total === 1 ? 'sample' : 'samples'}`, `${vi} · ${p} % · ${total} mẫu`);
     $('goal').firstElementChild.style.width = `${p}%`;
-    $('goal').title = pp ? T(`Parts of batch ${batch + 1}: ${done[0]} of ${done[1]} (${GOAL} per part)`, `Bộ phận của bộ ${batch + 1}: ${done[0]} / ${done[1]} (${GOAL} mỗi bộ phận)`)
-      : T(`Batch ${batch + 1}: ${done[0]} of ${done[1]} (${GOAL} per character)`, `Bộ ${batch + 1}: ${done[0]} / ${done[1]} (${GOAL} mỗi chữ)`);
+    $('goal').title = pp ? T(`${batch < 0 ? en : 'Parts of ' + en.toLowerCase()}: ${done[0]} of ${done[1]} (${GOAL} per part)`, `${batch < 0 ? vi : 'Bộ phận của ' + vi.toLowerCase()}: ${done[0]} / ${done[1]} (${GOAL} mỗi bộ phận)`)
+      : T(`${en}: ${done[0]} of ${done[1]} (${GOAL} per character)`, `${vi}: ${done[0]} / ${done[1]} (${GOAL} mỗi chữ)`);
     const m = $('batch-btn');
-    if (m) { m.setAttribute('data-en', `Batch ${batch + 1} (${p} %)…`); m.setAttribute('data-vi', `Bộ ${batch + 1} (${p} %)…`); m.textContent = T(`Batch ${batch + 1} (${p} %)…`, `Bộ ${batch + 1} (${p} %)…`); }
+    if (m) { m.setAttribute('data-en', `${en} (${p} %)…`); m.setAttribute('data-vi', `${vi} (${p} %)…`); m.textContent = T(`${en} (${p} %)…`, `${vi} (${p} %)…`); }
   }
 
   function toggleMenu(open) {
@@ -128,7 +137,9 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   let askedPart = (() => { try { const m = /&p=([^&]+)/.exec(location.hash); return m ? decodeURIComponent(m[1]) : null; } catch (e) { return null; } })();
 
   // ---------- the batches ----------
-  let batch = 0;
+  let batch = 0;                                  // of the mode shown; -1: the strokes (only Parts)
+  const savedBatch = { calm: 0, parts: -1 };      // each mode keeps its own batch (Parts starts with the strokes)
+  const batchName = b => (b < 0 ? ['Strokes', 'Các nét'] : [`Batch ${b + 1}`, `Bộ ${b + 1}`]);
   const batchCount = () => Math.ceil(chars.length / BATCH);
   const batchChars = b => chars.slice(b * BATCH, (b + 1) * BATCH);
   // how far a batch is: GOAL samples of each of its characters (more of one do not count) → [got, all]
@@ -148,6 +159,11 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   function batchParts(b) {
     const m = new Map();
     if (!parts) return m;
+    if (b < 0) {   // the strokes: each kind in the characters it is shown in
+      const by = new Map(chars.map(x => [x.c, x]));
+      for (const [key, shown] of parts.strokes) m.set(key, shown.map(h => [by.get(h[0]) || { c: h[0], r: '' }, [key, h[1], h[2], h[3]]]));
+      return m;
+    }
     for (const it of batchChars(b)) {
       const h = parts.hosts[it.c];
       if (h) for (const p of h.parts) { if (!m.has(p[0])) m.set(p[0], []); m.get(p[0]).push([it, p]); }
@@ -163,12 +179,13 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   function chooseBatch() {
     toggleMenu(false);
     const rows = [];
-    for (let b = 0; b < batchCount(); b++) {
-      const p = pct(batchDone(b)), list = batchChars(b);
-      rows.push(`<button type="button" class="batch${b === batch ? ' on' : ''}" data-b="${b}"><b>${T('Batch', 'Bộ')} ${b + 1}</b><span class="glyphs" lang="zh-Hant">${list.slice(0, 8).map(x => x.c).join('')}</span>` +
+    for (let b = mode === 'parts' ? -1 : 0; b < batchCount(); b++) {
+      const p = pct(batchDone(b)), [en, vi] = batchName(b);
+      const glyphs = b < 0 ? parts.strokes.slice(0, 8).map(x => parts.keys[x[0]]).filter(x => x.length === 1) : batchChars(b).slice(0, 8).map(x => x.c);
+      rows.push(`<button type="button" class="batch${b === batch ? ' on' : ''}" data-b="${b}"><b>${T(en, vi)}</b><span class="glyphs" lang="zh-Hant">${glyphs.join('')}</span>` +
         `<span class="pct">${p} %</span><i style="width:${p}%"></i></button>`);
     }
-    const text = mode === 'parts' ? T(`${BATCH} characters each, the most frequent first; ${GOAL} samples of each of their parts make 100 %.`, `Mỗi bộ ${BATCH} chữ, chữ thường gặp nhất trước; ${GOAL} mẫu mỗi bộ phận của chúng là 100 %.`)
+    const text = mode === 'parts' ? T(`The strokes first: with them every character can be put together. Then ${BATCH} characters each, the most frequent first; ${GOAL} samples of each of their parts make 100 %.`, `Trước hết là các nét: từ chúng có thể ghép mọi chữ. Sau đó mỗi bộ ${BATCH} chữ, chữ thường gặp nhất trước; ${GOAL} mẫu mỗi bộ phận của chúng là 100 %.`)
       : T(`${BATCH} characters each, the most frequent first; ${GOAL} samples of each character make 100 %.`, `Mỗi bộ ${BATCH} chữ, chữ thường gặp nhất trước; ${GOAL} mẫu mỗi chữ là 100 %.`);
     card(`<h2>${T('Choose a batch', 'Chọn bộ chữ')}</h2><p>${text}</p>
       <div class="batches">${rows.join('')}</div><div class="row"><button type="button" id="batch-close">${T('Close', 'Đóng')}</button></div>`);
@@ -177,8 +194,9 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   }
 
   function setBatch(b) {
-    batch = Math.max(0, Math.min(batchCount() - 1, b | 0));
-    try { localStorage.setItem(BATCH_KEY, String(batch)); } catch (e) { /* no storage */ }
+    batch = Math.max(mode === 'parts' ? -1 : 0, Math.min(batchCount() - 1, b | 0));
+    savedBatch[mode === 'parts' ? 'parts' : 'calm'] = batch;
+    try { localStorage.setItem(mode === 'parts' ? PARTS_BATCH_KEY : BATCH_KEY, String(batch)); } catch (e) { /* no storage */ }
     recent = []; recentParts = [];
     stats();
     if (!game) next();
@@ -514,6 +532,8 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     if (m === mode) return;
     if (m === 'parts' && !(await loadParts())) return;
     mode = m;
+    batch = savedBatch[m === 'parts' ? 'parts' : 'calm'];
+    recent = []; recentParts = [];
     try { localStorage.setItem(MODE_KEY, m === 'parts' ? 'parts' : 'calm'); } catch (e) { /* no storage */ }
     document.body.dataset.mode = m;
     stopGame();
