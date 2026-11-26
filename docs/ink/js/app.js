@@ -4,18 +4,20 @@ Nôm Ink: a collection of handwriting of Chữ Nôm, kept on this device (js/db.
 A character of chars.json (the characters of dict.csv of chunom.org, built by features/ink/tools/build_chars.py of the private repository) is shown with
 its reading in the upper half of the screen; it is written in the lower half, anywhere: the square drawn there (a practice grid: a square with its cross
 and diagonals) is only a suggestion. It has another place and size for every character (55–90 % of the shorter side of the stage, left, middle or right,
-higher or lower; beside a character already written where there is room), so that the hand is held a little differently every time (squeezed shapes are
+higher or lower), so that the hand is held a little differently every time (squeezed shapes are
 not asked for: they can be made from any sample later). Nothing moves (a dark screen, calm for the eyes). Every character is written once, then the next; the characters with the fewest
 samples come first, never one of the last RECENT again. Above, the earlier samples of the character (small pictures). The traffic light (js/shape.js)
 tells whether enough is written that looks like the character.
 
-Calm: no prompt of the tempo (there were some on the first day; nobody reads them while writing: the tempo is measured). When the light is green and the pen is lifted, a bar runs down (AUTO_MS, a little slower than Gboard); then the
+Calm: no prompt of the tempo (there were some on the first day; nobody reads them while writing: the tempo is measured). When the light is green and the pen is lifted, a bar runs down (AUTO_MS, a little slower than Gboard; yellow: YELLOW_MS, longer, in yellow: a
+character of few strokes or written very freely may never turn green); then the
 sample is kept and the next character comes (Undo in the message for a moment); a new stroke stops it. Next does the same at once, Skip goes on without it.
 Game: the character falls in its well; it must be written before it lands (the time from its strokes, shorter with every level). When the light is green
 and the pen rests for a moment, it is taken; time up without green: game over (that sample is kept as 'timeout'). From EVAL_LEVEL on the samples
 are kept with eval: false (only the game: too fast to be handwriting worth learning from).
 
 A sample (v 2): { v, c, mode, prompt (null; 'normal' | 'quick' | 'flowing' | 'slow' in the samples of the first day), level, limitMs, status: 'ok' | 'timeout', eval, layout: { kind, x, y, w, h, stageW, stageH, beside },
+(beside: a character in grey left of the square, until 2026-11-26)
 strokes: [[[x, y, t, p], …], …] (x, y in CSS pixels of the stage, which does not move: the shape is exactly as written; t ms from the first touch of the
 character, p the pressure 0..1 or null), pointer ('touch' | 'pen' | 'mouse'), device: { kind, dpr, w, h }, light: { ink, sim, light } (when it was kept),
 created (ISO time) }. layout.x, y, w, h: the square suggested. Samples of the first evening also have layout.drift and .at (the field drifted then);
@@ -33,9 +35,9 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   const PER_LEVEL = 5;         // characters per level of the game
   const BEST = 'nomInkBest';   // localStorage: the best score of the game
 
-  // the places of the field: about square anywhere in the stage, or beside a character already written
-  const LAYOUTS = [{ kind: 'square', w: 4 }, { kind: 'beside', w: 1 }];
-  const AUTO_MS = 1500;   // calm: from lifting the pen (light green) to the next character
+  const AUTO_MS = 1500;     // calm: from lifting the pen (light green) to the next character
+  const YELLOW_MS = 3500;   // the same with the light yellow (enough ink, the shape not quite): a longer rest
+  const GOAL = 10;          // samples per character the collection aims at (the thin bar below the title)
 
   const pick = list => { let sum = 0; for (const x of list) sum += x.w; let r = Math.random() * sum; for (const x of list) { if ((r -= x.w) < 0) return x; } return list[list.length - 1]; };
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -59,6 +61,10 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     $('menu-btn').addEventListener('click', e => { e.stopPropagation(); toggleMenu(); });
     document.addEventListener('click', e => { if (!$('menu').hidden && !$('menu').contains(e.target)) toggleMenu(false); });
     $('export').addEventListener('click', () => { toggleMenu(false); exportAll(); });
+    $('delete-all').addEventListener('click', () => { toggleMenu(false); askDelete(); });
+    // a new version of the app (the service worker took over): load it, but not in the middle of a character
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller)
+      navigator.serviceWorker.addEventListener('controllerchange', () => { if (!cur || !cur.strokes.length) location.reload(); else reloadSoon = true; });
     $('undo').addEventListener('click', undoStroke);
     $('clear').addEventListener('click', clearField);
     $('skip').addEventListener('click', () => { hideToast(); next(); });
@@ -85,6 +91,12 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   function stats() {
     const n = counts.size;
     $('stats').textContent = T(`${total} ${total === 1 ? 'sample' : 'samples'} · ${n}/${chars.length}`, `${total} mẫu · ${n}/${chars.length}`);
+    // the progress of the collection: GOAL samples of every character (more of one character do not count)
+    let got = 0;
+    for (const v of counts.values()) got += Math.min(v, GOAL);
+    const all = chars.length * GOAL, share = all ? got / all : 0;
+    $('goal').firstElementChild.style.width = `${(share * 100).toFixed(2)}%`;
+    $('goal').title = T(`${got} of ${all} (${GOAL} per character): ${(share * 100).toFixed(1)} %`, `${got} / ${all} (${GOAL} mỗi chữ): ${(share * 100).toFixed(1)} %`);
   }
 
   function toggleMenu(open) {
@@ -112,15 +124,15 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     return it;
   }
 
+  let reloadSoon = false;
   function next() {
+    if (reloadSoon && !game) { location.reload(); return; }
     const item = choose();
     const template = InkShape.template(item.t);
     cur = { item, template, layout: null, strokes: [], t0: 0, pointer: null, light: null };
     $('glyph').textContent = item.c;
     $('reading').textContent = item.r;
-    // beside a character only where the field can still be big (not on a phone held upright: half its width is too small)
-    const roomy = stage.clientWidth / 2 >= Math.min(stage.clientWidth, stage.clientHeight) * .55;
-    cur.layout = layoutFor(pick(LAYOUTS.filter(l => roomy || l.kind !== 'beside')).kind);
+    cur.layout = layoutFor('square');
     placeField(cur.layout);
     clearField();
     if (mode === 'calm') thumbs(item.c);
@@ -131,26 +143,18 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
   function layoutFor(kind) {
     const W = stage.clientWidth, H = stage.clientHeight, m = 10, S = Math.min(W, H);
     const room = (side, size) => m + Math.random() * Math.max(0, side - 2 * m - size);
-    let w, x, y, beside = null;
-    if (kind === 'beside') {
-      // a character already written on the left (in Pen, grey), the square right of it, about as big
-      w = Math.min(S * rand(.55, .8), W / 2 - 2 * m);
-      x = W / 2 + Math.random() * Math.max(0, W / 2 - w - m);
-      y = room(H, w);
-      beside = { c: chars[Math.floor(Math.random() * chars.length)].c, x: x - w * 1.08, y, size: w * .9 };
-    } else {
-      w = Math.min(S * rand(.55, .9), W - 2 * m, H - 2 * m);
-      x = room(W, w); y = room(H, w);
-    }
+    const w = Math.min(S * rand(.55, .9), W - 2 * m, H - 2 * m);
+    const x = room(W, w), y = room(H, w);
     const r = v => Math.round(v);
-    return { kind, x: r(x), y: r(y), w: r(w), h: r(w), stageW: r(W), stageH: r(H), beside: beside && beside.c, _beside: beside };
+    return { kind, x: r(x), y: r(y), w: r(w), h: r(w), stageW: r(W), stageH: r(H) };
   }
 
   // the bar of the time left until the next character (calm: AUTO_MS after the pen was lifted with the light green; the game: its rest)
   let autoTimer = 0;
-  function autoStart(ms, then) {
+  function autoStart(ms, then, yellow) {
     autoStop();
     const bar = $('auto').firstElementChild;
+    $('auto').classList.toggle('yellow', !!yellow);
     $('auto').hidden = false;                         // shown first: a hidden bar has no width to start the animation from
     bar.style.transition = 'none'; bar.style.width = '100%';
     void bar.offsetWidth;
@@ -169,9 +173,6 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
       cur.strokes = old;
     }
     Object.assign(field.style, { left: l.x + 'px', top: l.y + 'px', width: l.w + 'px', height: l.h + 'px' });
-    const b = $('beside');
-    if (l._beside) { b.hidden = false; b.textContent = l._beside.c; Object.assign(b.style, { left: l._beside.x + 'px', top: l._beside.y + 'px', fontSize: l._beside.size + 'px' }); }
-    else b.hidden = true;
     const dpr = devicePixelRatio || 1;
     canvas.width = Math.round(l.stageW * dpr); canvas.height = Math.round(l.stageH * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -211,7 +212,9 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     drawing = null;
     judge();
     redraw();
-    if (cur.light && cur.light.light === 'green') autoStart(game ? idleMs() : AUTO_MS, () => (game ? accept('ok') : onNext()));
+    const light = cur.light && cur.light.light, go = () => (game ? accept('ok', true) : onNext(true));
+    if (light === 'green') autoStart(game ? idleMs() : AUTO_MS, go);
+    else if (light === 'yellow') autoStart(game ? idleMs() * 2.5 : YELLOW_MS, go, true);   // a longer rest: some characters never turn green
   }
 
   function judge() {
@@ -264,7 +267,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     const sample = {
       v: 2, c: cur.item.c, mode, prompt: null, level: game ? game.level : null, limitMs: game ? Math.round(game.limit) : null,
       status, eval: !game || game.level < EVAL_LEVEL,
-      layout: { kind: l.kind, x: l.x, y: l.y, w: l.w, h: l.h, stageW: l.stageW, stageH: l.stageH, beside: l.beside || null },
+      layout: { kind: l.kind, x: l.x, y: l.y, w: l.w, h: l.h, stageW: l.stageW, stageH: l.stageH, beside: null },
       strokes: cur.strokes, pointer: cur.pointer, device: device(), light: cur.light, created: new Date().toISOString(),
     };
     let id = null;
@@ -273,10 +276,10 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     return { id, sample };
   }
 
-  async function onNext() {
+  async function onNext(auto) {
     autoStop();
     if (!cur || !cur.strokes.length) return;
-    if (game) { if (cur.light && cur.light.light === 'green') accept('ok'); else { field.classList.remove('shake'); void field.offsetWidth; field.classList.add('shake'); } return; }
+    if (game) { if (auto || (cur.light && cur.light.light === 'green')) accept('ok'); else { field.classList.remove('shake'); void field.offsetWidth; field.classList.add('shake'); } return; }
     const kept = await keep('ok');
     if (kept) toast(T('Kept', 'Đã lưu'), kept);
     next();
@@ -353,6 +356,22 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     toast(T(`${all.length} samples exported`, `Đã xuất ${all.length} mẫu`));
   }
 
+  // ---------- deleting all samples ----------
+  function askDelete() {
+    card(`<h2>${T('Delete all samples?', 'Xoá tất cả mẫu?')}</h2>
+      <p>${T(`All ${total} samples on this device are deleted. Export them first if you want to keep them.`, `Tất cả ${total} mẫu trên thiết bị này sẽ bị xoá. Hãy xuất chúng trước nếu bạn muốn giữ lại.`)}</p>
+      <div class="row"><button type="button" id="del-export">${T('Export', 'Xuất')}</button><button type="button" id="del-no">${T('Cancel', 'Huỷ')}</button><button type="button" class="main" id="del-yes">${T('Delete', 'Xoá')}</button></div>`);
+    $('del-export').onclick = () => exportAll();
+    $('del-no').onclick = () => closeCard();
+    $('del-yes').onclick = async () => {
+      try { await InkDB.clear(); } catch (e) { toast(e.message); return; }
+      counts = new Map(); total = 0; recent = [];
+      closeCard(); stats(); hideToast();
+      toast(T('All samples deleted', 'Đã xoá tất cả mẫu'));
+      if (mode === 'calm') next();
+    };
+  }
+
   // ---------- the modes ----------
   function setMode(m) {
     if (m === mode) return;
@@ -418,7 +437,7 @@ version 1 (the first day) had the points in pixels of the field and fields of ev
     game.raf = requestAnimationFrame(tick);
   }
 
-  async function accept(status) {
+  async function accept(status, auto) {
     if (!game || game.over || !cur.strokes.length) return;
     cancelAnimationFrame(game.raf); autoStop();
     const kept = await keep(status);
